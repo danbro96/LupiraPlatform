@@ -1,0 +1,28 @@
+{
+  "name": "@danbro96/lupira-sync-core",
+  "version": "0.1.0",
+  "description": "Pure Lupira offline-sync rules: last-writer-wins, replay-error classification, queue backoff.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danbro96/LupiraPlatform.git",
+    "directory": "packages/lupira-sync-core"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}
