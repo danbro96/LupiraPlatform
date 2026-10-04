@@ -74,6 +74,8 @@ public sealed class AuthEndpointTests
     [InlineData("https://evil.example/x", "/")]
     [InlineData("//evil.example/x", "/")]
     [InlineData("/\\evil.example", "/")]
+    [InlineData("/\t/evil.example", "/")]
+    [InlineData("/\n/evil.example", "/")]
     [InlineData("calendar", "/")]
     [InlineData(null, "/")]
     public async Task Login_only_returns_to_a_same_site_path(string? returnUrl, string expected)

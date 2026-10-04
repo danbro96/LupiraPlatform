@@ -69,6 +69,7 @@ public static class LupiraAuthEndpoints
         && returnUrl.StartsWith('/')
         && !returnUrl.StartsWith("//", StringComparison.Ordinal)
         && !returnUrl.StartsWith("/\\", StringComparison.Ordinal)
+        && !returnUrl.Any(char.IsControl)
             ? returnUrl
             : "/";
 }
