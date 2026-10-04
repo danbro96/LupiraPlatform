@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.1
+- Ships the `lupira-sync-maplibre` bin.
+
 ## 0.1.0
 
 - `maplibreSetup`: side-effect module setting the worker URL and the `pmtiles` protocol.
