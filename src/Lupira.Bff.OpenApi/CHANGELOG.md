@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.0
+- Breaking: removed `NullableRefNormalizer` and `UpstreamSpecRefresh`; Kiota 1.35.0 generates from the unmodified upstream specs.
+
 ## 0.1.0
 - `UpstreamSpecMerger` over the JSON DOM: documented allowlist filter, BFF mount and `pathMap` (mapped route parameters dropped), per-operation `SecurityFor`, `RetagByCluster`, `NamespaceCollisions` (schema rename with `$ref` retarget, operationId aliasing; off, a collision throws), `Version` override or upstream `info.version`, `SortPaths`.
 - `BffDocumentTransformer` (additive: C#-declared paths win), `AddLupiraBffOpenApi(...)`, `MergeResult` with `NotExposed` and `Renames`.

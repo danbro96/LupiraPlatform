@@ -3,8 +3,6 @@
 Rebuilds a BFF's OpenAPI document from its committed upstream specs (embedded as `upstream/*.json`), keeping only the `documented` groups of `exposed.json`. Every `dotnet build` then writes the contract the clients generate from.
 
 ```csharp
-if (UpstreamSpecRefresh.TryRun(args)) return;   // --normalize-specs [projectDir]
-
 builder.Services.AddLupiraBffOpenApi(o =>
 {
     o.Title = "LupiraCal BFF";
@@ -20,4 +18,3 @@ builder.Services.AddLupiraBffOpenApi(o =>
 - `SecurityFor(operation)` picks scheme names per operation (default `Cookie`, `Bearer` as alternatives); a name missing from `SecuritySchemes` throws.
 - A group's `pathMap` remounts its paths and drops the route parameters it removed.
 - `SortPaths` orders paths ordinally.
-- `NullableRefNormalizer` is the Kiota input only, never the published document.
