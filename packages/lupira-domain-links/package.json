@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-domain-links",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Pure URL builders for deep links between the Lupira web and mobile apps.",
   "license": "MIT",
   "type": "module",

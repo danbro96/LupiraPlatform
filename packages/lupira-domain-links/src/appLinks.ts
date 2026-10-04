@@ -38,7 +38,8 @@ const enc = encodeURIComponent;
 const layersParam = (layers: readonly string[] | undefined) =>
   layers === undefined ? '' : `&layers=${layers.length ? layers.map(enc).join(',') : 'none'}`;
 
-function links(base: (app: LupiraApp) => string, tasksItemPath: (listId: string, itemId: string) => string): AppLinks {
+export function webLinks(hosts: AppHosts): AppLinks {
+  const base = (app: LupiraApp) => `${hosts[app].replace(/\/+$/, '')}/`;
   return {
     calItemUrl: (itemId) => `${base('cal')}?item=${enc(itemId)}`,
     calContactUrl: (contactId) => `${base('cal')}contacts/${enc(contactId)}`,
@@ -49,14 +50,23 @@ function links(base: (app: LupiraApp) => string, tasksItemPath: (listId: string,
       `${base('photos')}?event=${enc(eventId)}${photoId ? `&photo=${enc(photoId)}` : ''}`,
     photosPhotoUrl: (photoId) => `${base('photos')}?photo=${enc(photoId)}`,
     photosRangeUrl: ({ from, to }) => `${base('photos')}?from=${enc(from)}&to=${enc(to)}`,
-    tasksItemUrl: (listId, itemId) => `${base('tasks')}${tasksItemPath(enc(listId), enc(itemId))}`,
+    tasksItemUrl: (listId) => `${base('tasks')}lists/${enc(listId)}`,
   };
 }
 
-export function webLinks(hosts: AppHosts): AppLinks {
-  return links((app) => `${hosts[app].replace(/\/+$/, '')}/`, (listId) => `lists/${listId}`);
-}
-
+// Path forms match each app's React Navigation linking config; ranges ride on the root screen's query.
 export function appLinks(schemes: AppHosts = APP_SCHEMES): AppLinks {
-  return links((app) => `${schemes[app]}://`, (listId, itemId) => `task/${listId}/${itemId}`);
+  const base = (app: LupiraApp) => `${schemes[app]}://`;
+  return {
+    calItemUrl: (itemId) => `${base('cal')}item/${enc(itemId)}`,
+    calContactUrl: (contactId) => `${base('cal')}contact/${enc(contactId)}`,
+    mapsAtUrl: ({ lon, lat, layers }) => `${base('maps')}at/${lon},${lat}${layersParam(layers).replace('&', '?')}`,
+    mapsRangeUrl: ({ from, to, layers }) => `${base('maps')}?from=${enc(from)}&to=${enc(to)}${layersParam(layers)}`,
+    mapsPlacesUrl: () => `${base('maps')}places`,
+    photosEventUrl: (eventId, photoId) =>
+      `${base('photos')}event/${enc(eventId)}${photoId ? `?photo=${enc(photoId)}` : ''}`,
+    photosPhotoUrl: (photoId) => `${base('photos')}photo/${enc(photoId)}`,
+    photosRangeUrl: ({ from, to }) => `${base('photos')}?from=${enc(from)}&to=${enc(to)}`,
+    tasksItemUrl: (listId, itemId) => `${base('tasks')}task/${enc(listId)}/${enc(itemId)}`,
+  };
 }

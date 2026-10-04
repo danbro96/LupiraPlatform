@@ -53,15 +53,18 @@ describe('appLinks', () => {
   const app = appLinks();
 
   it('opens each app through its scheme', () => {
-    expect(app.calItemUrl('i1')).toBe('lupiracalendar://?item=i1');
-    expect(app.calContactUrl('c1')).toBe('lupiracalendar://contacts/c1');
-    expect(app.mapsAtUrl({ lon: 13.1, lat: 60.1, layers: ['photos'] })).toBe('lupiramaps://?at=13.1,60.1&layers=photos');
-    expect(app.photosEventUrl('e1', 'p1')).toBe('lupiraphotos://?event=e1&photo=p1');
+    expect(app.calItemUrl('i1')).toBe('lupiracalendar://item/i1');
+    expect(app.calContactUrl('c1')).toBe('lupiracalendar://contact/c1');
+    expect(app.mapsAtUrl({ lon: 13.1, lat: 60.1, layers: ['photos'] })).toBe('lupiramaps://at/13.1,60.1?layers=photos');
+    expect(app.photosEventUrl('e1', 'p1')).toBe('lupiraphotos://event/e1?photo=p1');
     expect(app.photosRangeUrl({ from: '2026-10-04', to: '2026-10-04' })).toBe('lupiraphotos://?from=2026-10-04&to=2026-10-04');
   });
 
   it('opens a task by its deep-link path', () => {
     expect(app.tasksItemUrl('l1', 't1')).toBe('lupiratasks://task/l1/t1');
     expect(app.mapsPlacesUrl()).toBe('lupiramaps://places');
+    expect(app.photosPhotoUrl('p1')).toBe('lupiraphotos://photo/p1');
+    expect(app.photosEventUrl('e1')).toBe('lupiraphotos://event/e1');
+    expect(app.mapsAtUrl({ lon: 13.1, lat: 60.1 })).toBe('lupiramaps://at/13.1,60.1');
   });
 });
