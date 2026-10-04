@@ -10,7 +10,15 @@ const args = new Set(process.argv.slice(2));
 const mode = args.has('--check') ? 'check' : args.has('--dry-run') ? 'dry-run' : 'release';
 
 const run = (cmd, argv, opts = {}) =>
-  execFileSync(cmd, argv, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'], ...opts }).trim();
+  (execFileSync(cmd, argv, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'], ...opts }) ?? '').trim();
+
+const npmPublished = (p) => {
+  try {
+    return run('npm', ['view', `${p.id}@${p.version}`, 'version', '--registry', 'https://npm.pkg.github.com'], { stdio: ['ignore', 'pipe', 'ignore'] }) === p.version;
+  } catch {
+    return false;
+  }
+};
 
 function npmPackages() {
   const dir = join(root, 'packages');
@@ -108,7 +116,8 @@ for (const p of unreleased) {
   const notes = changelogSection(p);
   if (!notes) throw new Error(`${p.id}: CHANGELOG.md has no "## ${p.version}" section`);
   if (p.kind === 'npm') {
-    run('npm', ['publish', '-w', p.dir], { stdio: 'inherit' });
+    // A run that died after publishing but before tagging leaves the version on the registry.
+    if (!npmPublished(p)) run('npm', ['publish', '-w', p.dir], { stdio: 'inherit' });
   } else {
     run('dotnet', ['pack', p.dir, '-c', 'Release', '-o', out], { stdio: 'inherit' });
     run('dotnet', ['nuget', 'push', join(out, `${p.id}.${p.version}.nupkg`), '--source', 'https://nuget.pkg.github.com/danbro96/index.json', '--api-key', token, '--skip-duplicate'], { stdio: 'inherit' });
