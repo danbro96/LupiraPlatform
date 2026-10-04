@@ -32,6 +32,8 @@
     <Project Path="src/Lupira.Primitives/Lupira.Primitives.csproj" />
     <Project Path="src/Lupira.Results/Lupira.Results.csproj" />
     <Project Path="src/Lupira.Sync/Lupira.Sync.csproj" />
+    <Project Path="src/Lupira.Testing.Mcp/Lupira.Testing.Mcp.csproj" />
+    <Project Path="src/Lupira.Testing.Postgres/Lupira.Testing.Postgres.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Lupira.Auth.DeviceKeys.UnitTests/Lupira.Auth.DeviceKeys.UnitTests.csproj" />
@@ -60,5 +62,7 @@
     <Project Path="tests/Lupira.Postgres.Health.UnitTests/Lupira.Postgres.Health.UnitTests.csproj" />
     <Project Path="tests/Lupira.Postgres.Partitions.UnitTests/Lupira.Postgres.Partitions.UnitTests.csproj" />
     <Project Path="tests/Lupira.Sync.UnitTests/Lupira.Sync.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Testing.Mcp.UnitTests/Lupira.Testing.Mcp.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Testing.Postgres.UnitTests/Lupira.Testing.Postgres.UnitTests.csproj" />
   </Folder>
 </Solution>

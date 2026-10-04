@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="10.0.12" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Lupira.Auth.DevUser\Lupira.Auth.DevUser.csproj" />
+    <ProjectReference Include="..\..\src\Lupira.Hosting.LanEdge\Lupira.Hosting.LanEdge.csproj" />
+    <ProjectReference Include="..\..\src\Lupira.Mcp\Lupira.Mcp.csproj" />
+    <ProjectReference Include="..\..\src\Lupira.Testing.Mcp\Lupira.Testing.Mcp.csproj" />
+  </ItemGroup>
+
+</Project>
