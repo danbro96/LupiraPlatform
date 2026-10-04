@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-expo-oidc",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "OIDC for the Lupira Expo apps: discovery, code exchange, refresh, JWT claims, secure token storage, crypto polyfill.",
   "license": "MIT",
   "type": "module",

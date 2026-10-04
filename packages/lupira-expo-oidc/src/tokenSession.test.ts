@@ -22,9 +22,11 @@ const refreshTokens = vi.fn<(rt: string) => Promise<TokenSet>>();
 const signOut = vi.fn(async () => {
   session = { token: null, refreshToken: null, expiresAt: 0 };
 });
+const onDefinitiveFailure = vi.fn();
 const refresh = createTokenRefresher({
   read: () => session,
   refreshTokens,
+  onDefinitiveFailure,
   apply: async (t, previous) => {
     session = { token: t.accessToken, refreshToken: t.refreshToken ?? previous, expiresAt: Date.now() + (t.expiresIn ?? 3600) * 1000 };
   },
@@ -39,6 +41,7 @@ beforeEach(() => {
   store.clear();
   refreshTokens.mockReset();
   signOut.mockClear();
+  onDefinitiveFailure.mockClear();
 });
 
 describe('createTokenRefresher', () => {
@@ -81,6 +84,7 @@ describe('createTokenRefresher', () => {
     refreshTokens.mockRejectedValue(new RefreshError(true, 'invalid_grant'));
     expect(await refresh({ force: true })).toBeNull();
     expect(signOut).toHaveBeenCalledTimes(1);
+    expect(onDefinitiveFailure).toHaveBeenCalledWith(expect.objectContaining({ message: 'invalid_grant' }));
   });
 
   it('keeps the session on a transient failure and returns the same token', async () => {
@@ -88,6 +92,7 @@ describe('createTokenRefresher', () => {
     refreshTokens.mockRejectedValue(new RefreshError(false, '503'));
     expect(await refresh({ force: true })).toBe('tok-1');
     expect(signOut).not.toHaveBeenCalled();
+    expect(onDefinitiveFailure).not.toHaveBeenCalled();
   });
 
   it('settles a synchronous transient failure and lets the next call refresh again', async () => {
