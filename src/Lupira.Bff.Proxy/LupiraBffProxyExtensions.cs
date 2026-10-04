@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Lupira.Bff.Proxy;
 
@@ -20,12 +22,15 @@ public static class LupiraBffProxyExtensions
         builder.Configuration.AddInMemoryCollection(ProxyRoutes.Build(surface));
 
         builder.Services.AddSingleton(surface);
+        builder.Services.AddOptions<RouteGuardOptions>();
+        builder.Services.AddSingleton(services => GuardPlan(services, surface));
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddTransient<SessionTokenHandler>();
 
         var isDevelopment = builder.Environment.IsDevelopment();
         return builder.Services.AddReverseProxy()
             .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
+            .AddConfigFilter<RouteGuardFilter>()
             .AddTransforms(context => UpstreamCredentialTransforms.Apply(
                 context,
                 routes.GetValueOrDefault(context.Route.RouteId),
@@ -42,5 +47,18 @@ public static class LupiraBffProxyExtensions
         foreach (var (key, value) in ProxyRoutes.Build(ExposedSurface.Load(builder.Environment)).OrderBy(r => r.Key, StringComparer.Ordinal))
             output.WriteLine($"{key} = {value}");
         return true;
+    }
+
+    private static RouteGuardPlan GuardPlan(IServiceProvider services, ExposedSurface surface)
+    {
+        var plan = RouteGuards.Plan(surface, services.GetRequiredService<IOptions<RouteGuardOptions>>().Value.Specs.AsReadOnly());
+        if (plan.UnguardedClusters.Count > 0)
+        {
+            services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(RouteGuards)).LogWarning(
+                "Proxy: no upstream spec for {Clusters}; their templated routes match any segment and unlisted sibling paths are not fenced",
+                string.Join(", ", plan.UnguardedClusters));
+        }
+
+        return plan;
     }
 }

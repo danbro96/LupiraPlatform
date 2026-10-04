@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.0
+- `AddLupiraBffOpenApi` hands each configured upstream spec to the proxy's route guards (`Lupira.Bff.Proxy` 0.2.0 `RouteGuardOptions`).
+
 ## 0.2.0
 - Breaking: removed `NullableRefNormalizer` and `UpstreamSpecRefresh`; Kiota 1.35.0 generates from the unmodified upstream specs.
 

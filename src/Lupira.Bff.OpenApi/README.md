@@ -18,3 +18,4 @@ builder.Services.AddLupiraBffOpenApi(o =>
 - `SecurityFor(operation)` picks scheme names per operation (default `Cookie`, `Bearer` as alternatives); a name missing from `SecuritySchemes` throws.
 - A group's `pathMap` remounts its paths and drops the route parameters it removed.
 - `SortPaths` orders paths ordinally.
+- The same specs feed the proxy's route guards (`Lupira.Bff.Proxy` `RouteGuardOptions`).

@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -21,7 +22,11 @@ public sealed class ProxyHost : IAsyncDisposable
 
     public StubUpstream Upstream { get; }
 
-    public static async Task<ProxyHost> StartAsync(string fixture, string environment = "Production")
+    public static async Task<ProxyHost> StartAsync(
+        string fixture,
+        string environment = "Production",
+        IReadOnlyDictionary<string, JsonObject>? specs = null,
+        ILoggerProvider? logs = null)
     {
         var upstream = await StubUpstream.StartAsync();
         var surface = Fixture.Surface(fixture);
@@ -29,6 +34,7 @@ public sealed class ProxyHost : IAsyncDisposable
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = environment });
         builder.WebHost.UseTestServer();
         builder.Logging.ClearProviders();
+        if (logs is not null) builder.Logging.AddProvider(logs);
         builder.Configuration[DevUser.ConfigurationKey] = DevUserName;
         foreach (var cluster in surface.Operations.Select(o => o.Cluster).Distinct())
             builder.Configuration[$"ReverseProxy:Clusters:{cluster}:Destinations:primary:Address"] = upstream.Address;
@@ -38,6 +44,11 @@ public sealed class ProxyHost : IAsyncDisposable
         builder.Services.AddAuthorizationBuilder()
             .AddPolicy("Guest", p => p.RequireAuthenticatedUser().RequireClaim("share-token"));
         builder.AddLupiraBffProxy(o => o.Surface = surface);
+        builder.Services.Configure<RouteGuardOptions>(o =>
+        {
+            foreach (var (cluster, spec) in specs ?? new Dictionary<string, JsonObject>())
+                o.Specs[cluster] = spec;
+        });
 
         var app = builder.Build();
         app.UseLupiraBffDeviceKeyGate();

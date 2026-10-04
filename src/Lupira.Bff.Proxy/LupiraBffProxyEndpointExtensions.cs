@@ -10,7 +10,19 @@ public static class LupiraBffProxyEndpointExtensions
     public static IEndpointRouteBuilder MapLupiraBffProxy(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapReverseProxy();
+        endpoints.MapRouteFences();
         return endpoints.MapApiPrefixFence();
+    }
+
+    /// <summary>
+    /// An unlisted upstream path a listed template would capture (<c>/items/thin</c> under <c>/items/{id}</c>)
+    /// is a 404. Each fence outranks that template exactly where the upstream's own routing would.
+    /// </summary>
+    public static IEndpointRouteBuilder MapRouteFences(this IEndpointRouteBuilder endpoints)
+    {
+        foreach (var fence in endpoints.ServiceProvider.GetRequiredService<RouteGuardPlan>().Fences)
+            endpoints.MapMethods(fence.Path, [fence.Verb], () => TypedResults.NotFound());
+        return endpoints;
     }
 
     /// <summary>
