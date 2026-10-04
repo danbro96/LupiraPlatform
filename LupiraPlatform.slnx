@@ -16,11 +16,13 @@
     <Project Path="src/Lupira.Hosting.LanEdge/Lupira.Hosting.LanEdge.csproj" />
     <Project Path="src/Lupira.Hosting.Observability/Lupira.Hosting.Observability.csproj" />
     <Project Path="src/Lupira.Hosting.Problems/Lupira.Hosting.Problems.csproj" />
+    <Project Path="src/Lupira.Marten.Idempotency/Lupira.Marten.Idempotency.csproj" />
     <Project Path="src/Lupira.Mcp/Lupira.Mcp.csproj" />
     <Project Path="src/Lupira.Postgres.Health/Lupira.Postgres.Health.csproj" />
     <Project Path="src/Lupira.Postgres.Partitions/Lupira.Postgres.Partitions.csproj" />
     <Project Path="src/Lupira.Primitives/Lupira.Primitives.csproj" />
     <Project Path="src/Lupira.Results/Lupira.Results.csproj" />
+    <Project Path="src/Lupira.Sync/Lupira.Sync.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Lupira.Auth.DeviceKeys.UnitTests/Lupira.Auth.DeviceKeys.UnitTests.csproj" />
@@ -37,8 +39,10 @@
     <Project Path="tests/Lupira.Hosting.LanEdge.UnitTests/Lupira.Hosting.LanEdge.UnitTests.csproj" />
     <Project Path="tests/Lupira.Hosting.Observability.UnitTests/Lupira.Hosting.Observability.UnitTests.csproj" />
     <Project Path="tests/Lupira.Hosting.Problems.UnitTests/Lupira.Hosting.Problems.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Marten.Idempotency.UnitTests/Lupira.Marten.Idempotency.UnitTests.csproj" />
     <Project Path="tests/Lupira.Mcp.UnitTests/Lupira.Mcp.UnitTests.csproj" />
     <Project Path="tests/Lupira.Postgres.Health.UnitTests/Lupira.Postgres.Health.UnitTests.csproj" />
     <Project Path="tests/Lupira.Postgres.Partitions.UnitTests/Lupira.Postgres.Partitions.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Sync.UnitTests/Lupira.Sync.UnitTests.csproj" />
   </Folder>
 </Solution>
