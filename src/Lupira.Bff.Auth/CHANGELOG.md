@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.1
+- The session cookie forwards its challenge to OIDC, so a policy naming the cookie scheme (the `RequireAuthenticatedFallback` policy) sends an anonymous page to Authentik instead of looping on `/Account/Login`.
+
 ## 0.2.0
 - Breaking: `MapLupiraAuthEndpoints()` returns the `/auth` `RouteGroupBuilder`, so a consumer can add conventions such as `.WithTags(...)`.
 

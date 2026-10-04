@@ -164,6 +164,7 @@ public static class LupiraBffAuthExtensions
                 o.Cookie.SameSite = SameSiteMode.Lax;
                 o.SlidingExpiration = true;
                 o.ExpireTimeSpan = TimeSpan.FromHours(8);
+                o.ForwardChallenge = OpenIdConnectDefaults.AuthenticationScheme;
                 // XHR calls want a 401 to react to, not an HTML redirect to Authentik.
                 o.Events.OnRedirectToLogin = ctx => ApiAware(ctx, StatusCodes.Status401Unauthorized);
                 o.Events.OnRedirectToAccessDenied = ctx => ApiAware(ctx, StatusCodes.Status403Forbidden);

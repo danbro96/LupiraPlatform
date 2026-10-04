@@ -64,4 +64,26 @@ public sealed class AuthOptionsTests
         Assert.Equal(HttpStatusCode.Forbidden, (await host.Client(AuthHost.MintToken("lupira-family")).GetAsync("/test/plain")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await host.Client(AuthHost.MintToken("lupira-family", groups: ["family"])).GetAsync("/test/plain")).StatusCode);
     }
+
+    [Fact]
+    public async Task Fallback_policy_with_oidc_challenges_pages_into_authentik_and_api_paths_with_401()
+    {
+        await using var host = await AuthHost.StartAsync(
+            "cal",
+            "Production",
+            o =>
+            {
+                o.EnableOidc = true;
+                o.Authority = AuthHost.Issuer;
+                o.ClientId = "lupira-family";
+                o.CookieName = "__Host-lupira-family";
+                o.RequireAuthenticatedFallback = true;
+            });
+
+        var page = await host.Client().GetAsync("/");
+        Assert.Equal(HttpStatusCode.Redirect, page.StatusCode);
+        Assert.StartsWith($"{AuthHost.Issuer}authorize", page.Headers.Location!.ToString(), StringComparison.Ordinal);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, (await host.Client().GetAsync("/api/calendars")).StatusCode);
+    }
 }
