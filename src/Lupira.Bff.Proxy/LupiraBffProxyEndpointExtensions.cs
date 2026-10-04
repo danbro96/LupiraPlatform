@@ -21,7 +21,7 @@ public static class LupiraBffProxyEndpointExtensions
     public static IEndpointRouteBuilder MapRouteFences(this IEndpointRouteBuilder endpoints)
     {
         foreach (var fence in endpoints.ServiceProvider.GetRequiredService<RouteGuardPlan>().Fences)
-            endpoints.MapMethods(fence.Path, [fence.Verb], () => TypedResults.NotFound());
+            endpoints.MapMethods(fence.Path, [fence.Verb], () => TypedResults.NotFound()).ExcludeFromDescription();
         return endpoints;
     }
 

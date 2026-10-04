@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json.Nodes;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
@@ -84,6 +85,16 @@ public sealed class RouteGuardBehaviorTests
         var echo = await res.Content.ReadFromJsonAsync<UpstreamEcho>();
 
         Assert.Equal("/photos/density", echo!.Path);
+    }
+
+    [Fact]
+    public async Task Fences_stay_out_of_the_published_document()
+    {
+        await using var host = await ProxyHost.StartAsync("cal", specs: Specs(typed: false));
+
+        var fence = host.Endpoints.OfType<RouteEndpoint>().Single(e => e.RoutePattern.RawText == "/photo-api/photos/density");
+
+        Assert.True(fence.Metadata.GetMetadata<IExcludeFromDescriptionMetadata>()?.ExcludeFromDescription);
     }
 
     [Fact]
