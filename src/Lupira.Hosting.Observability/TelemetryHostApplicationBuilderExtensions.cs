@@ -21,6 +21,9 @@ public static class TelemetryHostApplicationBuilderExtensions
         var options = new LupiraTelemetryOptions();
         configure?.Invoke(options);
 
+        if (IsDocumentGeneration())
+            return builder;
+
         var otlp = !string.IsNullOrWhiteSpace(builder.Configuration[OtlpEndpointKey]);
         if (!otlp && !builder.Environment.IsDevelopment())
             throw new InvalidOperationException($"{OtlpEndpointKey} is not set; every deployed service exports telemetry.");
@@ -79,4 +82,8 @@ public static class TelemetryHostApplicationBuilderExtensions
 
         return builder;
     }
+
+    // Build-time OpenAPI generation boots the app inside this tool, with no deployment config.
+    private static bool IsDocumentGeneration() =>
+        Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
 }

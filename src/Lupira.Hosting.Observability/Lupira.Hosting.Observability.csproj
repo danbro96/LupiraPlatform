@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Description>OpenTelemetry for Lupira services: env-gated OTLP traces, metrics and logs, probe-span filter, platform and app meters/sources registered by default.</Description>
   </PropertyGroup>
 
