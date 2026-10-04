@@ -13,6 +13,5 @@ public static class DepzEndpoints
             .AllowAnonymous()
             .AddEndpointFilter<ProbeKeyFilter>()
             .ExcludeFromDescription()
-            .DisableHttpMetrics()
-            .WithName("GetDependencies");
+            .DisableHttpMetrics();
 }

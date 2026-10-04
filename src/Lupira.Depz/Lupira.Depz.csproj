@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Description>Non-gating /depz dependency report for Lupira services: background prober, report cache, probe-key gate, metrics.</Description>
   </PropertyGroup>
 

@@ -14,7 +14,7 @@ public sealed class DepzEndpointTests
 {
     private const string Key = "probe-secret";
 
-    private static async Task<WebApplication> StartAsync(string probeKey)
+    private static async Task<WebApplication> StartAsync(string probeKey, Action<WebApplication>? map = null)
     {
         var builder = WebApplication.CreateSlimBuilder();
         builder.WebHost.UseTestServer();
@@ -31,6 +31,7 @@ public sealed class DepzEndpointTests
         var app = builder.Build();
         app.UseAuthentication();
         app.UseAuthorization();
+        map?.Invoke(app);
         app.MapDepz();
         await app.StartAsync();
         return app;
@@ -79,5 +80,13 @@ public sealed class DepzEndpointTests
         var res = await Client(app, presented).GetAsync("/depz");
 
         Assert.Equal(HttpStatusCode.Unauthorized, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task A_host_endpoint_may_use_any_name()
+    {
+        await using var app = await StartAsync(Key, a => a.MapGet("/api/dependencies", () => "host").WithName("GetDependencies").AllowAnonymous());
+
+        Assert.Equal(HttpStatusCode.OK, (await Client(app, Key).GetAsync("/depz")).StatusCode);
     }
 }
