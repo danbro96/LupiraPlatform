@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Description>Wire contract of the Lupira fire push (POST /fires): the fired calendar item's prompt or action payload and the accepted response.</Description>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Description>Wire contract of the Lupira place-references check seam: which of the given place ids a service still references.</Description>
+  </PropertyGroup>
+
+</Project>

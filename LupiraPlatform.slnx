@@ -9,6 +9,8 @@
     <Project Path="src/Lupira.Build/Lupira.Build.csproj" />
     <Project Path="src/Lupira.Contracts.Dav/Lupira.Contracts.Dav.csproj" />
     <Project Path="src/Lupira.Contracts.Depz/Lupira.Contracts.Depz.csproj" />
+    <Project Path="src/Lupira.Contracts.Fires/Lupira.Contracts.Fires.csproj" />
+    <Project Path="src/Lupira.Contracts.PlaceRefs/Lupira.Contracts.PlaceRefs.csproj" />
     <Project Path="src/Lupira.Depz/Lupira.Depz.csproj" />
     <Project Path="src/Lupira.Depz.Yarp/Lupira.Depz.Yarp.csproj" />
     <Project Path="src/Lupira.Hosting.Defaults/Lupira.Hosting.Defaults.csproj" />
@@ -32,6 +34,8 @@
     <Project Path="tests/Lupira.Bff.Proxy.UnitTests/Lupira.Bff.Proxy.UnitTests.csproj" />
     <Project Path="tests/Lupira.Build.Tests/Lupira.Build.Tests.csproj" />
     <Project Path="tests/Lupira.Contracts.Dav.UnitTests/Lupira.Contracts.Dav.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Contracts.Fires.UnitTests/Lupira.Contracts.Fires.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Contracts.PlaceRefs.UnitTests/Lupira.Contracts.PlaceRefs.UnitTests.csproj" />
     <Project Path="tests/Lupira.Depz.UnitTests/Lupira.Depz.UnitTests.csproj" />
     <Project Path="tests/Lupira.Depz.Yarp.UnitTests/Lupira.Depz.Yarp.UnitTests.csproj" />
     <Project Path="tests/Lupira.Hosting.Defaults.UnitTests/Lupira.Hosting.Defaults.UnitTests.csproj" />
