@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>0.1.1</Version>
+    <Version>0.2.0</Version>
     <Description>Authentik front doors for Lupira BFFs: cookie + OIDC session, JWT bearer, guest cookie, Development user, /auth endpoints.</Description>
   </PropertyGroup>
 

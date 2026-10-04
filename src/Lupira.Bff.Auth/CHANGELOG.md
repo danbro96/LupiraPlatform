@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.0
+- Breaking: `MapLupiraAuthEndpoints()` returns the `/auth` `RouteGroupBuilder`, so a consumer can add conventions such as `.WithTags(...)`.
+
 ## 0.1.1
 - `/auth/login` rejects a return URL containing control characters.
 

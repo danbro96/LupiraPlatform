@@ -14,7 +14,7 @@ namespace Lupira.Bff.Auth;
 /// <summary>The auth surface the SPA drives: sign-in challenge, sign-out, and the current-user probe.</summary>
 public static class LupiraAuthEndpoints
 {
-    public static IEndpointRouteBuilder MapLupiraAuthEndpoints(this IEndpointRouteBuilder app)
+    public static RouteGroupBuilder MapLupiraAuthEndpoints(this IEndpointRouteBuilder app)
     {
         var options = app.ServiceProvider.GetRequiredService<LupiraBffAuthOptions>();
         var oidc = options.EnableOidc && app.ServiceProvider.GetRequiredService<IHostEnvironment>().IsProduction();
@@ -59,7 +59,7 @@ public static class LupiraAuthEndpoints
             .WithName("GetSession")
             .AllowAnonymous();
 
-        return app;
+        return group;
     }
 
     // Only allow same-site relative redirects back into the SPA.
