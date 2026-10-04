@@ -1,5 +1,7 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Lupira.Auth.DeviceKeys/Lupira.Auth.DeviceKeys.csproj" />
+    <Project Path="src/Lupira.Auth.DeviceKeys.AspNetCore/Lupira.Auth.DeviceKeys.AspNetCore.csproj" />
     <Project Path="src/Lupira.Auth.DevUser/Lupira.Auth.DevUser.csproj" />
     <Project Path="src/Lupira.Bff.Auth/Lupira.Bff.Auth.csproj" />
     <Project Path="src/Lupira.Bff.OpenApi/Lupira.Bff.OpenApi.csproj" />
@@ -20,6 +22,7 @@
     <Project Path="src/Lupira.Results/Lupira.Results.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Lupira.Auth.DeviceKeys.UnitTests/Lupira.Auth.DeviceKeys.UnitTests.csproj" />
     <Project Path="tests/Lupira.Auth.DevUser.UnitTests/Lupira.Auth.DevUser.UnitTests.csproj" />
     <Project Path="tests/Lupira.Bff.Auth.UnitTests/Lupira.Bff.Auth.UnitTests.csproj" />
     <Project Path="tests/Lupira.Bff.OpenApi.UnitTests/Lupira.Bff.OpenApi.UnitTests.csproj" />

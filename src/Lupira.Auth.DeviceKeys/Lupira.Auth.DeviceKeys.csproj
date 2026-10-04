@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <Description>Per-device ingest credential for Lupira APIs: stored key document, hashing, claims and the store port. BCL only.</Description>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Description>ASP.NET Core authentication handler for Lupira per-device ingest keys.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lupira.Auth.DeviceKeys\Lupira.Auth.DeviceKeys.csproj" />
+  </ItemGroup>
+
+</Project>
