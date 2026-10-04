@@ -1,0 +1,10 @@
+<Project>
+
+  <Target Name="LupiraReferenceDocsForOpenApi" AfterTargets="ResolveReferences">
+    <ItemGroup>
+      <AdditionalFiles Include="@(ReferencePath->'%(RootDir)%(Directory)%(Filename).xml')"
+                       Condition="$([System.String]::Copy('%(ReferencePath.Filename)').StartsWith('Lupira.')) and Exists('%(RootDir)%(Directory)%(Filename).xml')" />
+    </ItemGroup>
+  </Target>
+
+</Project>
