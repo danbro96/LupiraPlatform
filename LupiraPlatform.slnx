@@ -18,6 +18,7 @@
     <Project Path="src/Lupira.Hosting.Defaults/Lupira.Hosting.Defaults.csproj" />
     <Project Path="src/Lupira.Hosting.Health/Lupira.Hosting.Health.csproj" />
     <Project Path="src/Lupira.Hosting.LanEdge/Lupira.Hosting.LanEdge.csproj" />
+    <Project Path="src/Lupira.Hosting.OpenApi/Lupira.Hosting.OpenApi.csproj" />
     <Project Path="src/Lupira.Hosting.Observability/Lupira.Hosting.Observability.csproj" />
     <Project Path="src/Lupira.Hosting.Problems/Lupira.Hosting.Problems.csproj" />
     <Project Path="src/Lupira.Identity.Marten/Lupira.Identity.Marten.csproj" />
@@ -46,6 +47,7 @@
     <Project Path="tests/Lupira.Hosting.Defaults.UnitTests/Lupira.Hosting.Defaults.UnitTests.csproj" />
     <Project Path="tests/Lupira.Hosting.Health.UnitTests/Lupira.Hosting.Health.UnitTests.csproj" />
     <Project Path="tests/Lupira.Hosting.LanEdge.UnitTests/Lupira.Hosting.LanEdge.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Hosting.OpenApi.UnitTests/Lupira.Hosting.OpenApi.UnitTests.csproj" />
     <Project Path="tests/Lupira.Hosting.Observability.UnitTests/Lupira.Hosting.Observability.UnitTests.csproj" />
     <Project Path="tests/Lupira.Hosting.Problems.UnitTests/Lupira.Hosting.Problems.UnitTests.csproj" />
     <Project Path="tests/Lupira.Identity.Marten.UnitTests/Lupira.Identity.Marten.UnitTests.csproj" />
