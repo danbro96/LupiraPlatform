@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Description>Internal-hop service authentication for Lupira APIs: the Development X-Dev-Service scheme, the ServiceJwt client-credentials bearer and the Service policy.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lupira.Auth.Service\Lupira.Auth.Service.csproj" />
+  </ItemGroup>
+
+</Project>

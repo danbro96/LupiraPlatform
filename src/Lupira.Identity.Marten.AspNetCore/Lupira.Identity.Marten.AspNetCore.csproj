@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Description>ASP.NET Core half of Lupira identity: CurrentUser resolves the request's OIDC claims to the local Marten Principal.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lupira.Identity.Marten\Lupira.Identity.Marten.csproj" />
+  </ItemGroup>
+
+</Project>

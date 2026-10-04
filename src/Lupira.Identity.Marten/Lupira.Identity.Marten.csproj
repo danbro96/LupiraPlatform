@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Description>Per-service Lupira identity on Marten: the JIT-provisioned Principal document, PrincipalDirectory and EventActor provenance. No ASP.NET.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Marten" Version="9.40.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Lupira.Identity.Marten.UnitTests" />
+  </ItemGroup>
+
+</Project>

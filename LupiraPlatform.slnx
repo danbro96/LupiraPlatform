@@ -3,6 +3,8 @@
     <Project Path="src/Lupira.Auth.DeviceKeys/Lupira.Auth.DeviceKeys.csproj" />
     <Project Path="src/Lupira.Auth.DeviceKeys.AspNetCore/Lupira.Auth.DeviceKeys.AspNetCore.csproj" />
     <Project Path="src/Lupira.Auth.DevUser/Lupira.Auth.DevUser.csproj" />
+    <Project Path="src/Lupira.Auth.Service/Lupira.Auth.Service.csproj" />
+    <Project Path="src/Lupira.Auth.Service.AspNetCore/Lupira.Auth.Service.AspNetCore.csproj" />
     <Project Path="src/Lupira.Bff.Auth/Lupira.Bff.Auth.csproj" />
     <Project Path="src/Lupira.Bff.OpenApi/Lupira.Bff.OpenApi.csproj" />
     <Project Path="src/Lupira.Bff.Proxy/Lupira.Bff.Proxy.csproj" />
@@ -18,6 +20,8 @@
     <Project Path="src/Lupira.Hosting.LanEdge/Lupira.Hosting.LanEdge.csproj" />
     <Project Path="src/Lupira.Hosting.Observability/Lupira.Hosting.Observability.csproj" />
     <Project Path="src/Lupira.Hosting.Problems/Lupira.Hosting.Problems.csproj" />
+    <Project Path="src/Lupira.Identity.Marten/Lupira.Identity.Marten.csproj" />
+    <Project Path="src/Lupira.Identity.Marten.AspNetCore/Lupira.Identity.Marten.AspNetCore.csproj" />
     <Project Path="src/Lupira.Marten.Idempotency/Lupira.Marten.Idempotency.csproj" />
     <Project Path="src/Lupira.Mcp/Lupira.Mcp.csproj" />
     <Project Path="src/Lupira.Postgres.Health/Lupira.Postgres.Health.csproj" />
@@ -29,6 +33,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/Lupira.Auth.DeviceKeys.UnitTests/Lupira.Auth.DeviceKeys.UnitTests.csproj" />
     <Project Path="tests/Lupira.Auth.DevUser.UnitTests/Lupira.Auth.DevUser.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Auth.Service.UnitTests/Lupira.Auth.Service.UnitTests.csproj" />
     <Project Path="tests/Lupira.Bff.Auth.UnitTests/Lupira.Bff.Auth.UnitTests.csproj" />
     <Project Path="tests/Lupira.Bff.OpenApi.UnitTests/Lupira.Bff.OpenApi.UnitTests.csproj" />
     <Project Path="tests/Lupira.Bff.Proxy.UnitTests/Lupira.Bff.Proxy.UnitTests.csproj" />
@@ -43,6 +48,7 @@
     <Project Path="tests/Lupira.Hosting.LanEdge.UnitTests/Lupira.Hosting.LanEdge.UnitTests.csproj" />
     <Project Path="tests/Lupira.Hosting.Observability.UnitTests/Lupira.Hosting.Observability.UnitTests.csproj" />
     <Project Path="tests/Lupira.Hosting.Problems.UnitTests/Lupira.Hosting.Problems.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Identity.Marten.UnitTests/Lupira.Identity.Marten.UnitTests.csproj" />
     <Project Path="tests/Lupira.Marten.Idempotency.UnitTests/Lupira.Marten.Idempotency.UnitTests.csproj" />
     <Project Path="tests/Lupira.Mcp.UnitTests/Lupira.Mcp.UnitTests.csproj" />
     <Project Path="tests/Lupira.Postgres.Health.UnitTests/Lupira.Postgres.Health.UnitTests.csproj" />
