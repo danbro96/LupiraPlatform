@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.2
+- `navLight`/`navDark` are typed as `@react-navigation/native`'s `Theme`, so apps on React Navigation 7.3.15+ need no cast.
+
 ## 0.1.1
 - Depends on `@danbro96/lupira-tokens-core` ^0.2.0.
 

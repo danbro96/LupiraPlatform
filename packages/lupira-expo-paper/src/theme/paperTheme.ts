@@ -1,5 +1,6 @@
 import { MD3DarkTheme, MD3LightTheme, adaptNavigationTheme } from 'react-native-paper';
 import { DarkTheme as NavDarkBase, DefaultTheme as NavLightBase } from '@react-navigation/native';
+import type { Theme } from '@react-navigation/native';
 import type { Palette } from '@danbro96/lupira-tokens-core/color';
 import { radii } from '@danbro96/lupira-tokens-core/spacing';
 
@@ -34,7 +35,9 @@ export function createPaperThemes<P extends Palette>(lightColors: P, darkColors:
     materialLight: paperLight,
     materialDark: paperDark,
   });
-  return { paperLight, paperDark, navLight: adapted.LightTheme, navDark: adapted.DarkTheme };
+  const navLight: Theme = adapted.LightTheme;
+  const navDark: Theme = adapted.DarkTheme;
+  return { paperLight, paperDark, navLight, navDark };
 }
 
 export type AppTheme<P extends Palette = Palette> = ReturnType<typeof createPaperThemes<P>>['paperLight'];
