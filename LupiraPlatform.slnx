@@ -10,6 +10,7 @@
     <Project Path="src/Lupira.Bff.OpenApi/Lupira.Bff.OpenApi.csproj" />
     <Project Path="src/Lupira.Bff.Proxy/Lupira.Bff.Proxy.csproj" />
     <Project Path="src/Lupira.Build/Lupira.Build.csproj" />
+    <Project Path="src/Lupira.Clients.ServiceTokens/Lupira.Clients.ServiceTokens.csproj" />
     <Project Path="src/Lupira.Contracts.Dav/Lupira.Contracts.Dav.csproj" />
     <Project Path="src/Lupira.Contracts.Depz/Lupira.Contracts.Depz.csproj" />
     <Project Path="src/Lupira.Contracts.Fires/Lupira.Contracts.Fires.csproj" />
@@ -41,6 +42,7 @@
     <Project Path="tests/Lupira.Bff.OpenApi.UnitTests/Lupira.Bff.OpenApi.UnitTests.csproj" />
     <Project Path="tests/Lupira.Bff.Proxy.UnitTests/Lupira.Bff.Proxy.UnitTests.csproj" />
     <Project Path="tests/Lupira.Build.Tests/Lupira.Build.Tests.csproj" />
+    <Project Path="tests/Lupira.Clients.ServiceTokens.UnitTests/Lupira.Clients.ServiceTokens.UnitTests.csproj" />
     <Project Path="tests/Lupira.Contracts.Dav.UnitTests/Lupira.Contracts.Dav.UnitTests.csproj" />
     <Project Path="tests/Lupira.Contracts.Fires.UnitTests/Lupira.Contracts.Fires.UnitTests.csproj" />
     <Project Path="tests/Lupira.Contracts.PlaceRefs.UnitTests/Lupira.Contracts.PlaceRefs.UnitTests.csproj" />
