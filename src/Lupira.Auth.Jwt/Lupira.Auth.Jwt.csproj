@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Description>OIDC JWT bearer authentication for Lupira APIs: Auth:Oidc binding and startup guard, the /mcp RFC 9728 challenge, the Development DevOrJwt default scheme, and the Api, internal-scope and gateway-azp policies.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lupira.Auth.DevUser\Lupira.Auth.DevUser.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Lupira.Auth.Jwt.UnitTests" />
+  </ItemGroup>
+
+</Project>

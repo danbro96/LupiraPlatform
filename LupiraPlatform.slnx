@@ -3,6 +3,7 @@
     <Project Path="src/Lupira.Auth.DeviceKeys/Lupira.Auth.DeviceKeys.csproj" />
     <Project Path="src/Lupira.Auth.DeviceKeys.AspNetCore/Lupira.Auth.DeviceKeys.AspNetCore.csproj" />
     <Project Path="src/Lupira.Auth.DevUser/Lupira.Auth.DevUser.csproj" />
+    <Project Path="src/Lupira.Auth.Jwt/Lupira.Auth.Jwt.csproj" />
     <Project Path="src/Lupira.Auth.Service/Lupira.Auth.Service.csproj" />
     <Project Path="src/Lupira.Auth.Service.AspNetCore/Lupira.Auth.Service.AspNetCore.csproj" />
     <Project Path="src/Lupira.Bff.Auth/Lupira.Bff.Auth.csproj" />
@@ -34,6 +35,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/Lupira.Auth.DeviceKeys.UnitTests/Lupira.Auth.DeviceKeys.UnitTests.csproj" />
     <Project Path="tests/Lupira.Auth.DevUser.UnitTests/Lupira.Auth.DevUser.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Auth.Jwt.UnitTests/Lupira.Auth.Jwt.UnitTests.csproj" />
     <Project Path="tests/Lupira.Auth.Service.UnitTests/Lupira.Auth.Service.UnitTests.csproj" />
     <Project Path="tests/Lupira.Bff.Auth.UnitTests/Lupira.Bff.Auth.UnitTests.csproj" />
     <Project Path="tests/Lupira.Bff.OpenApi.UnitTests/Lupira.Bff.OpenApi.UnitTests.csproj" />
