@@ -15,6 +15,7 @@
     <Project Path="src/Lupira.Hosting.Observability/Lupira.Hosting.Observability.csproj" />
     <Project Path="src/Lupira.Hosting.Problems/Lupira.Hosting.Problems.csproj" />
     <Project Path="src/Lupira.Mcp/Lupira.Mcp.csproj" />
+    <Project Path="src/Lupira.Postgres.Partitions/Lupira.Postgres.Partitions.csproj" />
     <Project Path="src/Lupira.Primitives/Lupira.Primitives.csproj" />
     <Project Path="src/Lupira.Results/Lupira.Results.csproj" />
   </Folder>
@@ -33,5 +34,6 @@
     <Project Path="tests/Lupira.Hosting.Observability.UnitTests/Lupira.Hosting.Observability.UnitTests.csproj" />
     <Project Path="tests/Lupira.Hosting.Problems.UnitTests/Lupira.Hosting.Problems.UnitTests.csproj" />
     <Project Path="tests/Lupira.Mcp.UnitTests/Lupira.Mcp.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Postgres.Partitions.UnitTests/Lupira.Postgres.Partitions.UnitTests.csproj" />
   </Folder>
 </Solution>
