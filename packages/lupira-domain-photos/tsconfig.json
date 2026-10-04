@@ -1,0 +1,8 @@
+{
+  "extends": "@danbro96/lupira-config-ts/tsconfig.library.json",
+  "references": [
+    {
+      "path": "../lupira-domain-core"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "clusters": {
+    "tasks-api": { "prefix": "/api" }
+  },
+  "groups": {
+    "guest": {
+      "policy": "Guest",
+      "documented": true,
+      "credential": "none",
+      "pathMap": {
+        "upstream": "/shared/{token}",
+        "bff": "/share",
+        "claims": { "token": "share-token" }
+      }
+    }
+  },
+  "operations": {
+    "tasks-api": [
+      "GET /lists",
+      "POST /lists",
+      "DELETE /lists/{listId}",
+      "GET /lists/{listId}",
+      "PATCH /lists/{listId}",
+      "POST /lists/{listId}/archive",
+      "GET /lists/{listId}/items",
+      "POST /lists/{listId}/items",
+      "DELETE /lists/{listId}/items/{itemId}",
+      "PATCH /lists/{listId}/items/{itemId}",
+      "POST /lists/{listId}/items/{itemId}/complete",
+      "POST /lists/{listId}/items/{itemId}/move",
+      "POST /lists/{listId}/items/{itemId}/reopen",
+      "POST /lists/{listId}/members",
+      "DELETE /lists/{listId}/members/{principalId}",
+      "PATCH /lists/{listId}/members/{principalId}",
+      "POST /lists/{listId}/order",
+      "POST /lists/{listId}/restore",
+      "GET /lists/{listId}/shares",
+      "POST /lists/{listId}/shares",
+      "DELETE /lists/{listId}/shares/{shareId}",
+      "GET /lists/{listId}/sync",
+      "GET /me",
+      "POST /shares/redeem",
+      "GET /users/directory"
+    ]
+  },
+  "guest": {
+    "tasks-api": [
+      "GET /shared/{token}",
+      "POST /shared/{token}/items",
+      "DELETE /shared/{token}/items/{itemId}",
+      "PATCH /shared/{token}/items/{itemId}",
+      "POST /shared/{token}/items/{itemId}/complete",
+      "POST /shared/{token}/items/{itemId}/move",
+      "POST /shared/{token}/items/{itemId}/reopen"
+    ]
+  }
+}

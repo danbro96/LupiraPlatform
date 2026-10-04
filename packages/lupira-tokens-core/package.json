@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-tokens-core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Platform-neutral Lupira design tokens: core palette, spacing, radii, typography, contrast.",
   "license": "MIT",
   "type": "module",

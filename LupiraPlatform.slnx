@@ -1,20 +1,34 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Lupira.Auth.DevUser/Lupira.Auth.DevUser.csproj" />
+    <Project Path="src/Lupira.Bff.Auth/Lupira.Bff.Auth.csproj" />
+    <Project Path="src/Lupira.Bff.OpenApi/Lupira.Bff.OpenApi.csproj" />
+    <Project Path="src/Lupira.Bff.Proxy/Lupira.Bff.Proxy.csproj" />
     <Project Path="src/Lupira.Build/Lupira.Build.csproj" />
     <Project Path="src/Lupira.Contracts.Depz/Lupira.Contracts.Depz.csproj" />
     <Project Path="src/Lupira.Depz/Lupira.Depz.csproj" />
     <Project Path="src/Lupira.Depz.Yarp/Lupira.Depz.Yarp.csproj" />
+    <Project Path="src/Lupira.Hosting.Defaults/Lupira.Hosting.Defaults.csproj" />
+    <Project Path="src/Lupira.Hosting.Health/Lupira.Hosting.Health.csproj" />
     <Project Path="src/Lupira.Hosting.LanEdge/Lupira.Hosting.LanEdge.csproj" />
+    <Project Path="src/Lupira.Hosting.Observability/Lupira.Hosting.Observability.csproj" />
     <Project Path="src/Lupira.Hosting.Problems/Lupira.Hosting.Problems.csproj" />
     <Project Path="src/Lupira.Mcp/Lupira.Mcp.csproj" />
     <Project Path="src/Lupira.Primitives/Lupira.Primitives.csproj" />
     <Project Path="src/Lupira.Results/Lupira.Results.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Lupira.Auth.DevUser.UnitTests/Lupira.Auth.DevUser.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Bff.Auth.UnitTests/Lupira.Bff.Auth.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Bff.OpenApi.UnitTests/Lupira.Bff.OpenApi.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Bff.Proxy.UnitTests/Lupira.Bff.Proxy.UnitTests.csproj" />
     <Project Path="tests/Lupira.Build.Tests/Lupira.Build.Tests.csproj" />
     <Project Path="tests/Lupira.Depz.UnitTests/Lupira.Depz.UnitTests.csproj" />
     <Project Path="tests/Lupira.Depz.Yarp.UnitTests/Lupira.Depz.Yarp.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Hosting.Defaults.UnitTests/Lupira.Hosting.Defaults.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Hosting.Health.UnitTests/Lupira.Hosting.Health.UnitTests.csproj" />
     <Project Path="tests/Lupira.Hosting.LanEdge.UnitTests/Lupira.Hosting.LanEdge.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Hosting.Observability.UnitTests/Lupira.Hosting.Observability.UnitTests.csproj" />
     <Project Path="tests/Lupira.Hosting.Problems.UnitTests/Lupira.Hosting.Problems.UnitTests.csproj" />
     <Project Path="tests/Lupira.Mcp.UnitTests/Lupira.Mcp.UnitTests.csproj" />
   </Folder>

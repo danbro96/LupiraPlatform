@@ -1,0 +1,35 @@
+{
+  "name": "@danbro96/lupira-web-session",
+  "version": "0.1.0",
+  "description": "BFF cookie-session plumbing for the Lupira SPAs: session user, sign-in/out, route gate, cookie transport.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "peerDependencies": {
+    "@danbro96/lupira-http": "^0.1.0",
+    "@tanstack/react-query": "^5.103.2",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-router": "^7.18.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danbro96/LupiraPlatform.git",
+    "directory": "packages/lupira-web-session"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}

@@ -45,6 +45,14 @@ export const darkColors: Palette = {
   brand: '#E76F51',
 };
 
+/** Over photos and behind sheets. The same in both schemes: what lies underneath sets the contrast. */
+export const SCRIM = {
+  backdrop: 'rgba(0, 0, 0, 0.4)',
+  onImage: 'rgba(0, 0, 0, 0.6)',
+  onImageHover: 'rgba(0, 0, 0, 0.8)',
+  textOnImage: '#ffffff',
+} as const;
+
 /** A '#rrggbb' colour with an alpha, as '#rrggbbaa'. */
 export function withAlpha(hex: string, alpha: number): string {
   return `${hex.slice(0, 7)}${Math.round(Math.min(1, Math.max(0, alpha)) * 255).toString(16).padStart(2, '0')}`;

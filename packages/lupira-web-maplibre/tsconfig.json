@@ -1,0 +1,18 @@
+{
+  "extends": "@danbro96/lupira-config-ts/tsconfig.library.json",
+  "references": [
+    {
+      "path": "../lupira-domain-maps"
+    },
+    {
+      "path": "../lupira-tokens-map"
+    }
+  ],
+  "compilerOptions": {
+    "emitDeclarationOnly": true,
+    "lib": [
+      "ES2022",
+      "DOM"
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "@danbro96/lupira-http",
+  "version": "0.1.0",
+  "description": "Fetch-only HTTP plumbing for the Lupira clients: ApiError, transport seam, retry policy, AuthPort, bearer mutator.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danbro96/LupiraPlatform.git",
+    "directory": "packages/lupira-http"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}

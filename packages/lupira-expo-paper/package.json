@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-expo-paper",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "react-native-paper UI kit shared by the Lupira Expo apps.",
   "license": "MIT",
   "type": "module",
@@ -18,7 +18,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@danbro96/lupira-tokens-core": "^0.1.0"
+    "@danbro96/lupira-tokens-core": "^0.2.0"
   },
   "peerDependencies": {
     "@danbro96/lupira-expo-feedback": "^1.0.0",

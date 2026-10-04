@@ -1,7 +1,9 @@
 {
   "extends": "@danbro96/lupira-config-ts/tsconfig.base.json",
   "compilerOptions": {
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"]
   },
   "include": ["packages/*/src/**/*.test.ts", "packages/*/src/**/*.test.tsx", "vitest.config.mts"]
 }

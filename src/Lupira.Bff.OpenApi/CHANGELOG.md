@@ -1,0 +1,6 @@
+# Changelog
+
+## 0.1.0
+- `UpstreamSpecMerger` over the JSON DOM: documented allowlist filter, BFF mount and `pathMap` (mapped route parameters dropped), per-operation `SecurityFor`, `RetagByCluster`, `NamespaceCollisions` (schema rename with `$ref` retarget, operationId aliasing; off, a collision throws), `Version` override or upstream `info.version`, `SortPaths`.
+- `BffDocumentTransformer` (additive: C#-declared paths win), `AddLupiraBffOpenApi(...)`, `MergeResult` with `NotExposed` and `Renames`.
+- `NullableRefNormalizer` and `UpstreamSpecRefresh.TryRun(args)` for `--normalize-specs`.

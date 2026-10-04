@@ -1,0 +1,44 @@
+{
+  "name": "@danbro96/lupira-web-maplibre",
+  "version": "0.1.0",
+  "description": "maplibre-gl setup for the Lupira SPAs: worker + pmtiles wiring, basemap style loading, MiniMap.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "./dist/maplibreSetup.js"
+  ],
+  "bin": {
+    "lupira-sync-maplibre": "./bin/lupira-sync-maplibre.mjs"
+  },
+  "exports": {
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@danbro96/lupira-domain-maps": "^0.1.0",
+    "@danbro96/lupira-tokens-map": "^0.1.0"
+  },
+  "peerDependencies": {
+    "@mui/material": "^9.4.0",
+    "maplibre-gl": "^6.11.2",
+    "pmtiles": "^4.5.0",
+    "react": "^19.2.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danbro96/LupiraPlatform.git",
+    "directory": "packages/lupira-web-maplibre"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}

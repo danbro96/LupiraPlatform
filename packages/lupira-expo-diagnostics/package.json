@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-expo-diagnostics",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Debug log, developer screen, build info and OTA auto-update for Lupira Expo apps.",
   "license": "MIT",
   "type": "module",
@@ -18,7 +18,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@danbro96/lupira-tokens-core": "^0.1.0"
+    "@danbro96/lupira-tokens-core": "^0.2.0"
   },
   "peerDependencies": {
     "@danbro96/lupira-expo-paper": "^0.1.0",

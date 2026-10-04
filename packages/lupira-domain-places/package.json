@@ -1,0 +1,32 @@
+{
+  "name": "@danbro96/lupira-domain-places",
+  "version": "0.1.0",
+  "description": "Pure Lupira place rules: geo math, place lookup, ranking and picking, hotspot wording.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@danbro96/lupira-domain-contacts": "^0.1.0",
+    "@danbro96/lupira-domain-core": "^0.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danbro96/LupiraPlatform.git",
+    "directory": "packages/lupira-domain-places"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}

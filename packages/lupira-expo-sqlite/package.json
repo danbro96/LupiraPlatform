@@ -1,0 +1,43 @@
+{
+  "name": "@danbro96/lupira-expo-sqlite",
+  "version": "0.1.0",
+  "description": "SQLite Db/Tx port for the Lupira Expo apps: expo-sqlite implementation, node:sqlite test double, migration runner.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "default": "./dist/types.js"
+    },
+    "./expoDb": {
+      "types": "./dist/expoDb.d.ts",
+      "default": "./dist/expoDb.js"
+    },
+    "./migrate": {
+      "types": "./dist/migrate.d.ts",
+      "default": "./dist/migrate.js"
+    },
+    "./node": {
+      "types": "./dist/nodeDb.d.ts",
+      "default": "./dist/nodeDb.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "peerDependencies": {
+    "expo-sqlite": ">=57.0.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danbro96/LupiraPlatform.git",
+    "directory": "packages/lupira-expo-sqlite"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}

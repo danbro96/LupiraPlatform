@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0
+
+- `color`: `SCRIM` (photo overlays and sheet backdrops).
+
 ## 0.1.0
 
 - `color`: `Palette`, `lightColors`, `darkColors` (the estate's 12 shared keys, `brand` included), `withAlpha`.
