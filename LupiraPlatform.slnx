@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Lupira.Build/Lupira.Build.csproj" />
+    <Project Path="src/Lupira.Contracts.Depz/Lupira.Contracts.Depz.csproj" />
+    <Project Path="src/Lupira.Depz/Lupira.Depz.csproj" />
+    <Project Path="src/Lupira.Depz.Yarp/Lupira.Depz.Yarp.csproj" />
+    <Project Path="src/Lupira.Hosting.LanEdge/Lupira.Hosting.LanEdge.csproj" />
+    <Project Path="src/Lupira.Hosting.Problems/Lupira.Hosting.Problems.csproj" />
+    <Project Path="src/Lupira.Mcp/Lupira.Mcp.csproj" />
+    <Project Path="src/Lupira.Primitives/Lupira.Primitives.csproj" />
+    <Project Path="src/Lupira.Results/Lupira.Results.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Lupira.Build.Tests/Lupira.Build.Tests.csproj" />
+    <Project Path="tests/Lupira.Depz.UnitTests/Lupira.Depz.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Depz.Yarp.UnitTests/Lupira.Depz.Yarp.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Hosting.LanEdge.UnitTests/Lupira.Hosting.LanEdge.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Hosting.Problems.UnitTests/Lupira.Hosting.Problems.UnitTests.csproj" />
+    <Project Path="tests/Lupira.Mcp.UnitTests/Lupira.Mcp.UnitTests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Description>/depz roster for YARP BFFs: one anonymous readyz probe per ReverseProxy:Clusters entry.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lupira.Depz\Lupira.Depz.csproj" />
+  </ItemGroup>
+
+</Project>

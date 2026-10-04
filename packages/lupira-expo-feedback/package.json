@@ -1,0 +1,39 @@
+{
+  "name": "@danbro96/lupira-expo-feedback",
+  "version": "1.0.0",
+  "description": "Toast store, haptics and copy-to-clipboard feedback for Lupira Expo apps.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "peerDependencies": {
+    "expo-clipboard": ">=57.0.2",
+    "expo-haptics": ">=57.0.3",
+    "react": "^19.2.3",
+    "zustand": "^5.0.15"
+  },
+  "peerDependenciesMeta": {
+    "expo-clipboard": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danbro96/LupiraPlatform.git",
+    "directory": "packages/lupira-expo-feedback"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}

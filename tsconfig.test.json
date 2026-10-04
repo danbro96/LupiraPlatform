@@ -1,0 +1,7 @@
+{
+  "extends": "@danbro96/lupira-config-ts/tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx"
+  },
+  "include": ["packages/*/src/**/*.test.ts", "packages/*/src/**/*.test.tsx", "vitest.config.mts"]
+}

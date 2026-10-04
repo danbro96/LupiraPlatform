@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/lupira-config-ts" },
+    { "path": "packages/lupira-config-eslint" },
+    { "path": "packages/lupira-tokens-core" },
+    { "path": "packages/lupira-expo-feedback" },
+    { "path": "packages/lupira-expo-paper" },
+    { "path": "packages/lupira-expo-diagnostics" }
+  ]
+}

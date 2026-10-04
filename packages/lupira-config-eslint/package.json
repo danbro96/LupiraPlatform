@@ -1,0 +1,38 @@
+{
+  "name": "@danbro96/lupira-config-eslint",
+  "version": "0.1.0",
+  "description": "ESLint flat-config presets enforcing the Lupira layered import boundaries.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-boundaries": "^7.2.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "typescript-eslint": "^8.70.1"
+  },
+  "peerDependencies": {
+    "eslint": "^10.11.0",
+    "typescript": "^6.0.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danbro96/LupiraPlatform.git",
+    "directory": "packages/lupira-config-eslint"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}

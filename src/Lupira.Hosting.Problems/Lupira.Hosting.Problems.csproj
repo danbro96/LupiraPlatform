@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Description>RFC 7807 ProblemDetails for Lupira APIs: Problems helpers, OpResult → typed Results unions, unhandled-exception handler.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lupira.Results\Lupira.Results.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Lupira.Hosting.Problems.UnitTests" />
+  </ItemGroup>
+
+</Project>

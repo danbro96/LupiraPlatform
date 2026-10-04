@@ -1,0 +1,14 @@
+{
+  "extends": "@danbro96/lupira-config-ts/tsconfig.library.json",
+  "references": [
+    {
+      "path": "../lupira-tokens-core"
+    },
+    {
+      "path": "../lupira-expo-feedback"
+    }
+  ],
+  "compilerOptions": {
+    "emitDeclarationOnly": true
+  }
+}

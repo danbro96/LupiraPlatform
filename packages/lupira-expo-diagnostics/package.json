@@ -1,0 +1,41 @@
+{
+  "name": "@danbro96/lupira-expo-diagnostics",
+  "version": "0.1.0",
+  "description": "Debug log, developer screen, build info and OTA auto-update for Lupira Expo apps.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@danbro96/lupira-tokens-core": "^0.1.0"
+  },
+  "peerDependencies": {
+    "@danbro96/lupira-expo-paper": "^0.1.0",
+    "@react-navigation/native": "^7.3.14",
+    "@sentry/react-native": ">=7.11.0",
+    "expo-updates": ">=57.0.23",
+    "react": "^19.2.3",
+    "react-native": ">=0.86.3",
+    "react-native-paper": "^5.15.3",
+    "zustand": "^5.0.15"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danbro96/LupiraPlatform.git",
+    "directory": "packages/lupira-expo-diagnostics"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}

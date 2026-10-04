@@ -1,0 +1,41 @@
+{
+  "name": "@danbro96/lupira-config-ts",
+  "version": "0.1.0",
+  "description": "Shared tsconfig bases and vitest config for Lupira TypeScript packages and apps.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./tsconfig.base.json": "./tsconfig.base.json",
+    "./tsconfig.library.json": "./tsconfig.library.json",
+    "./vitest": {
+      "types": "./dist/vitest.d.ts",
+      "default": "./dist/vitest.js"
+    }
+  },
+  "files": [
+    "dist",
+    "tsconfig.base.json",
+    "tsconfig.library.json"
+  ],
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "peerDependencies": {
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.1"
+  },
+  "peerDependenciesMeta": {
+    "vitest": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danbro96/LupiraPlatform.git",
+    "directory": "packages/lupira-config-ts"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}

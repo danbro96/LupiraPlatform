@@ -1,0 +1,40 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
+
+namespace Lupira.Hosting.Problems;
+
+/// <summary>
+/// Shared helpers for emitting RFC 7807 ProblemDetails responses, so the wire shape is consistent —
+/// <c>application/problem+json</c> with <c>{ type, title, detail, status }</c> — and clients have a single
+/// error-parser path.
+/// </summary>
+public static class Problems
+{
+    public static ProblemHttpResult BadRequest(string detail, string? title = null) =>
+        TypedResults.Problem(
+            title: title ?? "Bad request",
+            detail: detail,
+            statusCode: StatusCodes.Status400BadRequest,
+            type: "https://httpstatuses.com/400");
+
+    public static ProblemHttpResult Forbidden(string detail, string? title = null) =>
+        TypedResults.Problem(
+            title: title ?? "Forbidden",
+            detail: detail,
+            statusCode: StatusCodes.Status403Forbidden,
+            type: "https://httpstatuses.com/403");
+
+    public static ProblemHttpResult Conflict(string detail, string? title = null) =>
+        TypedResults.Problem(
+            title: title ?? "Conflict",
+            detail: detail,
+            statusCode: StatusCodes.Status409Conflict,
+            type: "https://httpstatuses.com/409");
+
+    public static ProblemHttpResult BadGateway(string detail, string? title = null) =>
+        TypedResults.Problem(
+            title: title ?? "Upstream unavailable",
+            detail: detail,
+            statusCode: StatusCodes.Status502BadGateway,
+            type: "https://httpstatuses.com/502");
+}

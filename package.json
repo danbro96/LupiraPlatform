@@ -1,0 +1,51 @@
+{
+  "name": "lupira-platform",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "clean": "tsc -b --clean && rm -rf packages/*/dist packages/*/node_modules/.tmp",
+    "build": "tsc -b && node scripts/react-compile.mjs",
+    "typecheck": "tsc -b --force && tsc -p tsconfig.test.json",
+    "lint": "npm run build && npm run lint --workspaces --if-present",
+    "test": "npm run build && vitest run",
+    "release": "node scripts/release.mjs",
+    "release:check": "node scripts/release.mjs --check"
+  },
+  "devDependencies": {
+    "@babel/core": "7.29.7",
+    "@babel/plugin-transform-react-jsx": "7.29.7",
+    "@babel/preset-typescript": "7.29.7",
+    "@expo/vector-icons": "15.1.1",
+    "@react-navigation/native": "7.3.14",
+    "@sentry/react-native": "7.11.0",
+    "@types/react": "19.2.17",
+    "babel-plugin-react-compiler": "1.0.0",
+    "eslint": "10.11.0",
+    "eslint-import-resolver-typescript": "4.4.5",
+    "eslint-plugin-boundaries": "7.2.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "expo": "57.0.25",
+    "expo-clipboard": "57.0.2",
+    "expo-haptics": "57.0.3",
+    "expo-updates": "57.0.23",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-paper": "5.15.3",
+    "react-native-safe-area-context": "5.7.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.70.1",
+    "vitest": "5.0.1",
+    "zustand": "5.0.15"
+  },
+  "engines": {
+    "node": ">=24.19.0",
+    "npm": ">=11.10.0"
+  },
+  "allowScripts": {
+    "@sentry/cli": false,
+    "unrs-resolver": false
+  }
+}
