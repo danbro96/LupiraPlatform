@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-expo-sqlite",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "SQLite Db/Tx port for the Lupira Expo apps: expo-sqlite implementation, node:sqlite test double, migration runner.",
   "license": "MIT",
   "type": "module",
