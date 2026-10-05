@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const rn = vi.hoisted(() => ({ appState: null as ((s: string) => void) | null, remove: vi.fn() }));
 const net = vi.hoisted(() => ({ listener: null as ((s: { isConnected: boolean | null }) => void) | null, unsubscribe: vi.fn() }));
-const task = vi.hoisted(() => ({ defined: new Map<string, () => Promise<unknown>>(), register: vi.fn() }));
+const task = vi.hoisted(() => ({ defined: new Map<string, () => Promise<unknown>>(), register: vi.fn(), unregister: vi.fn() }));
 
 vi.mock('react-native', () => ({
   AppState: {
@@ -21,7 +21,7 @@ vi.mock('@react-native-community/netinfo', () => ({
   },
 }));
 vi.mock('expo-task-manager', () => ({ defineTask: (name: string, fn: () => Promise<unknown>) => task.defined.set(name, fn) }));
-vi.mock('expo-background-task', () => ({ BackgroundTaskResult: { Success: 1 }, registerTaskAsync: task.register }));
+vi.mock('expo-background-task', () => ({ BackgroundTaskResult: { Success: 1 }, registerTaskAsync: task.register, unregisterTaskAsync: task.unregister }));
 
 import { setAuthPort } from '@danbro96/lupira-http/authPort';
 import { defineSyncTask, startSyncTriggers } from './triggers.ts';
@@ -43,6 +43,7 @@ const engine = { sync: vi.fn(async () => undefined) };
 beforeEach(() => {
   engine.sync.mockClear();
   task.register.mockReset().mockResolvedValue(undefined);
+  task.unregister.mockReset().mockResolvedValue(undefined);
 });
 
 describe('startSyncTriggers', () => {
@@ -66,6 +67,13 @@ describe('startSyncTriggers', () => {
     expect(rn.remove).toHaveBeenCalled();
     expect(net.unsubscribe).toHaveBeenCalled();
     expect(offSignIn).toHaveBeenCalled();
+  });
+
+  it('removes the background task instead of registering it when told not to (development builds)', () => {
+    startSyncTriggers(engine, { backgroundTaskName: 'test-sync', registerBackgroundTask: false });
+    expect(task.register).not.toHaveBeenCalled();
+    expect(task.unregister).toHaveBeenCalledWith('test-sync');
+    expect(engine.sync).toHaveBeenCalledTimes(1);
   });
 
   it('tolerates a device without background tasks', async () => {

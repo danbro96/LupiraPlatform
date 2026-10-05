@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- `expo/triggers`: `startSyncTriggers` takes `registerBackgroundTask` (default true); false removes the background task instead of registering it, for development builds where a fired job would start React before the dev launcher.
+
 ## 0.1.0
 
 - `engine`: `createSyncEngine({ openDb, modules, cacheVersion, hooks?, onChange, now? })` → `sync`, `push`, `ready`, `enqueue(ops, { holdMs? })`, `discard`, `retry`, `reindex`, `wipe`, `doc`, `docs`, `parked`, `status`.
