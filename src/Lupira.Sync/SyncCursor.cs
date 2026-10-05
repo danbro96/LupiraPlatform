@@ -4,10 +4,13 @@ using System.Text;
 
 namespace Lupira.Sync;
 
-/// <summary>Feed cursor: <c>UpdatedSequence</c> watermark + a token of the caller's readable containers. Grants and
-/// revokes move no row's sequence, so a scope mismatch restarts the stream.</summary>
+/// <summary>Feed cursor: global event-sequence watermark + a token of the caller's readable containers. Grants and
+/// revokes append no event to the records they expose, so a scope mismatch restarts the stream. <see cref="After"/> is
+/// the last id of a full-sync page still in progress.</summary>
 public readonly record struct SyncCursor(long Sequence, string Scope)
 {
+    public Guid? After { get; init; }
+
     public static string ScopeOf(IEnumerable<Guid> readableContainerIds)
     {
         var joined = string.Join(',', readableContainerIds.Order().Select(id => id.ToString("N")));
@@ -18,9 +21,17 @@ public readonly record struct SyncCursor(long Sequence, string Scope)
     public static bool TryParse(string value, out SyncCursor cursor)
     {
         cursor = default;
-        var dot = value.IndexOf('.');
-        if (!long.TryParse(dot < 0 ? value : value[..dot], NumberStyles.None, CultureInfo.InvariantCulture, out var sequence)) return false;
-        cursor = new SyncCursor(sequence, dot < 0 ? string.Empty : value[(dot + 1)..]);
+        var parts = value.Split('.');
+        if (parts.Length > 3) return false;
+        if (!long.TryParse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture, out var sequence)) return false;
+        Guid? after = null;
+        if (parts.Length == 3)
+        {
+            if (!Guid.TryParseExact(parts[2], "N", out var id)) return false;
+            after = id;
+        }
+
+        cursor = new SyncCursor(sequence, parts.Length > 1 ? parts[1] : string.Empty) { After = after };
         return true;
     }
 
@@ -35,5 +46,5 @@ public readonly record struct SyncCursor(long Sequence, string Scope)
         return true;
     }
 
-    public override string ToString() => $"{Sequence}.{Scope}";
+    public override string ToString() => After is { } after ? $"{Sequence}.{Scope}.{after:N}" : $"{Sequence}.{Scope}";
 }

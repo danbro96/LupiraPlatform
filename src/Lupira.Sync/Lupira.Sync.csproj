@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>0.1.0</Version>
-    <Description>Scoped changes-feed cursor and per-section last-writer guard DTO for Lupira sync endpoints.</Description>
+    <Version>0.2.0</Version>
+    <Description>Scoped changes-feed cursor, feed query and page contract, and per-section last-writer guard DTO for Lupira sync endpoints.</Description>
   </PropertyGroup>
 
 </Project>

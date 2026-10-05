@@ -36,11 +36,37 @@ public class SyncCursorTests
         Assert.Equal(new SyncCursor(17, string.Empty), legacy);
     }
 
+    [Fact]
+    public void Round_trips_with_a_full_sync_position()
+    {
+        var after = Guid.Parse("0190f3a1-7c2e-7d4b-9a1f-2b3c4d5e6f70");
+        var cursor = new SyncCursor(42, "abc") { After = after };
+        Assert.Equal("42.abc.0190f3a17c2e7d4b9a1f2b3c4d5e6f70", cursor.ToString());
+        Assert.True(SyncCursor.TryParse(cursor.ToString(), out var parsed));
+        Assert.Equal(cursor, parsed);
+    }
+
+    [Fact]
+    public void Two_part_cursor_has_no_full_sync_position()
+    {
+        Assert.True(SyncCursor.TryParse("42.abc", out var cursor));
+        Assert.Equal(new SyncCursor(42, "abc"), cursor);
+        Assert.Null(cursor.After);
+        Assert.Equal("42.abc", cursor.ToString());
+    }
+
+    [Fact]
+    public void Position_takes_part_in_equality() =>
+        Assert.NotEqual(new SyncCursor(1, "a"), new SyncCursor(1, "a") { After = Guid.NewGuid() });
+
     [Theory]
     [InlineData("-1")]
     [InlineData("abc")]
     [InlineData(".scope")]
     [InlineData("1e3.scope")]
+    [InlineData("1.scope.not-a-guid")]
+    [InlineData("1.scope.0190f3a1-7c2e-7d4b-9a1f-2b3c4d5e6f70")]
+    [InlineData("1.scope.0190f3a17c2e7d4b9a1f2b3c4d5e6f70.x")]
     public void Rejects_what_it_never_issued(string value) => Assert.False(SyncCursor.TryParse(value, out _));
 
     [Theory]
@@ -67,6 +93,13 @@ public class SyncCursorTests
     {
         Assert.True(SyncCursor.TryResume(since, "abc", out var sequence));
         Assert.Equal(0, sequence);
+    }
+
+    [Fact]
+    public void Resumes_at_the_sequence_of_a_full_sync_cursor()
+    {
+        Assert.True(SyncCursor.TryResume("42.abc.0190f3a17c2e7d4b9a1f2b3c4d5e6f70", "abc", out var sequence));
+        Assert.Equal(42, sequence);
     }
 
     [Fact]
