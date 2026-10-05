@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0
+- `AccountButton` opens Settings directly: it takes only `name`, with no menu and no sign-out.
+- `SignOutButton`: the confirmed sign-out row for a Settings screen's Account section.
+
 ## 0.5.0
 - `IconButton` forwards Paper's own props (`style`, `disabled`, `selected`, `size`) and no longer forces `margin: 0`.
 - `AccountButton` sets no margin of its own; its touch target comes from `hitSlop`.
