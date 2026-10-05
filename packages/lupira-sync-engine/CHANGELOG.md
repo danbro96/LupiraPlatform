@@ -8,4 +8,4 @@
 - Pull: paged feeds per module in order, resumable full syncs by generation, prune of unmentioned docs without queued ops.
 - Push: single-flight drain with one queued rerun, head-of-line hold per hold key, backoff, park, and a 401 pause until the next sync.
 - `status`: framework-free store for `useSyncExternalStore`; `bannerState`: the sync banner derived from it.
-- `expo/triggers`: `startSyncTriggers(engine, { backgroundTaskName })` and `defineSyncTask(name, engine)`.
+- `expo/triggers`: `startSyncTriggers(engine, { backgroundTaskName })` and `defineSyncTask(name, engine, prepare?)`; `prepare` runs before the background sync.

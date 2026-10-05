@@ -81,4 +81,12 @@ describe('defineSyncTask', () => {
     expect(await task.defined.get('test-sync')!()).toBe(1);
     expect(engine.sync).toHaveBeenCalledTimes(1);
   });
+
+  it('prepares before syncing', async () => {
+    const order: string[] = [];
+    engine.sync.mockImplementationOnce(async () => void order.push('sync'));
+    defineSyncTask('test-prepared', engine, async () => void order.push('prepare'));
+    await task.defined.get('test-prepared')!();
+    expect(order).toEqual(['prepare', 'sync']);
+  });
 });

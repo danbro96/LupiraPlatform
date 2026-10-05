@@ -7,9 +7,11 @@ import type { SyncEngine } from '../engine.ts';
 
 type Syncable = Pick<SyncEngine, 'sync'>;
 
-/** Call at module scope: the OS runs the task in a headless JS context where no component ever mounts. */
-export function defineSyncTask(taskName: string, engine: Syncable): void {
+/** Call at module scope: the OS runs the task in a headless JS context where no component ever mounts, so
+ *  `prepare` loads what the app's startup would have (the auth session) before syncing. */
+export function defineSyncTask(taskName: string, engine: Syncable, prepare?: () => Promise<void>): void {
   TaskManager.defineTask(taskName, async () => {
+    await prepare?.();
     await engine.sync();
     return BackgroundTask.BackgroundTaskResult.Success;
   });
