@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-domain-maps",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Pure Lupira map rules: basemap style loading and zoom math.",
   "license": "MIT",
   "type": "module",

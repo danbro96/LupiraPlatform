@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-web-mui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MUI kit shared by the Lupira SPAs: theme factory, icon vocabulary, snackbar, centered message.",
   "license": "MIT",
   "type": "module",
