@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+- `exclusive` opens its own connection and takes the write lock with `BEGIN IMMEDIATE`, so the busy timeout applies to every transaction; the deferred `BEGIN` failed instantly (`database is locked`) when another connection committed between its read and its write.
+
 ## 0.2.0
 
 - `expoDb(name, options?)`: every native call retries once when expo-modules-core reports a live statement as already released; `onRetry(message)` observes it.

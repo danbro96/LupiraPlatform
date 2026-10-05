@@ -5,9 +5,10 @@ const handle = vi.hoisted(() => ({
   runAsync: vi.fn(),
   getAllAsync: vi.fn(),
   getFirstAsync: vi.fn(),
-  withExclusiveTransactionAsync: vi.fn(),
+  closeAsync: vi.fn(),
 }));
-vi.mock('expo-sqlite', () => ({ openDatabaseAsync: vi.fn(async () => handle) }));
+const openDatabaseAsync = vi.hoisted(() => vi.fn());
+vi.mock('expo-sqlite', () => ({ openDatabaseAsync }));
 
 import { expoDb } from './expoDb.ts';
 
@@ -19,7 +20,9 @@ beforeEach(() => {
   handle.getAllAsync.mockResolvedValue([]);
   handle.getFirstAsync.mockResolvedValue(null);
   handle.runAsync.mockResolvedValue(undefined);
-  handle.withExclusiveTransactionAsync.mockImplementation(async (fn: (txn: typeof handle) => Promise<void>) => fn(handle));
+  handle.closeAsync.mockResolvedValue(undefined);
+  openDatabaseAsync.mockReset();
+  openDatabaseAsync.mockImplementation(async () => handle);
 });
 
 describe('shared-object retry', () => {
@@ -102,5 +105,47 @@ describe('serializeStatements', () => {
     });
     await Promise.all([db.run('a'), db.run('b'), db.run('c')]);
     expect(order).toEqual(['a', 'b', 'c']);
+  });
+});
+
+describe('exclusive', () => {
+  const statements = () => handle.execAsync.mock.calls.map(([sql]) => sql as string);
+
+  it('opens its own connection and takes the write lock before running', async () => {
+    const db = await expoDb('t')();
+    handle.execAsync.mockClear();
+    openDatabaseAsync.mockClear();
+    await db.exclusive(async () => undefined);
+    expect(openDatabaseAsync).toHaveBeenCalledWith('t', { useNewConnection: true });
+    expect(statements()).toEqual(['PRAGMA busy_timeout = 30000; BEGIN IMMEDIATE', 'COMMIT']);
+    expect(handle.closeAsync).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the callback result', async () => {
+    const db = await expoDb('t')();
+    expect(await db.exclusive(async () => 42)).toBe(42);
+  });
+
+  it('rolls back, closes and rethrows the original error', async () => {
+    const db = await expoDb('t')();
+    handle.execAsync.mockClear();
+    await expect(db.exclusive(async () => { throw new Error('boom'); })).rejects.toThrow('boom');
+    expect(statements()).toEqual(['PRAGMA busy_timeout = 30000; BEGIN IMMEDIATE', 'ROLLBACK']);
+    expect(handle.closeAsync).toHaveBeenCalledTimes(1);
+  });
+
+  it('surfaces the original error when the rollback itself fails', async () => {
+    const db = await expoDb('t')();
+    handle.execAsync.mockImplementation(async (sql: string) => {
+      if (sql === 'ROLLBACK') throw new Error('rollback failed');
+    });
+    await expect(db.exclusive(async () => { throw new Error('boom'); })).rejects.toThrow('boom');
+  });
+
+  it('closes the connection when taking the lock fails', async () => {
+    const db = await expoDb('t')();
+    handle.execAsync.mockRejectedValueOnce(new Error('database is locked'));
+    await expect(db.exclusive(async () => undefined)).rejects.toThrow('database is locked');
+    expect(handle.closeAsync).toHaveBeenCalledTimes(1);
   });
 });

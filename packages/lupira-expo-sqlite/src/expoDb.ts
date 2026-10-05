@@ -24,7 +24,7 @@ async function open(name: string, { onRetry, serializeStatements = false }: Expo
   // busy_timeout: exclusive transactions ride a second connection (expo-sqlite), and a native bridge may read
   // this file too — waiting beats an instant "database is locked" during the first big pull.
   await guard(() => raw.execAsync('PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 30000;'));
-  return wrap(raw, guard, retrying);
+  return wrap(name, raw, guard, retrying);
 }
 
 // expo-modules-core's shared-object registry can report a live NativeStatement as released while argument
@@ -67,22 +67,27 @@ function wrapTx(h: SQLite.SQLiteDatabase, guard: Guard): Tx {
   };
 }
 
-function wrap(raw: SQLite.SQLiteDatabase, guard: Guard, retrying: Guard): Db {
+function wrap(name: string, raw: SQLite.SQLiteDatabase, guard: Guard, retrying: Guard): Db {
   return {
     ...wrapTx(raw, guard),
     exec: (sql) => guard(() => raw.execAsync(sql)),
-    // withExclusiveTransactionAsync hands us a dedicated handle no other query can interleave with — the
-    // whole point of the Tx-threading discipline (see types.ts). It returns void, so the result rides a closure.
+    // BEGIN IMMEDIATE takes the write lock before the first read, so the busy handler waits for other writers;
+    // a deferred BEGIN that reads then writes fails instantly with a stale snapshot instead.
     async exclusive<T>(fn: (tx: Tx) => Promise<T>): Promise<T> {
-      let result!: T;
-      await raw.withExclusiveTransactionAsync(async (txn) => {
-        const tx = wrapTx(txn as unknown as SQLite.SQLiteDatabase, retrying);
-        // busy_timeout is per-connection and this txn rides its own — cover commits/escalations
-        // against other connections instead of failing instantly.
-        await tx.first('PRAGMA busy_timeout = 30000');
-        result = await fn(tx);
-      });
-      return result;
+      const conn = await SQLite.openDatabaseAsync(name, { useNewConnection: true });
+      try {
+        await conn.execAsync('PRAGMA busy_timeout = 30000; BEGIN IMMEDIATE');
+        try {
+          const result = await fn(wrapTx(conn, retrying));
+          await conn.execAsync('COMMIT');
+          return result;
+        } catch (e) {
+          await conn.execAsync('ROLLBACK').catch(() => {});
+          throw e;
+        }
+      } finally {
+        await conn.closeAsync();
+      }
     },
   };
 }
