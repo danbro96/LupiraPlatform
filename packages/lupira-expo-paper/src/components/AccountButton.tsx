@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NavigationProp } from '@react-navigation/native';
 import { Avatar } from 'react-native-paper';
@@ -30,7 +30,7 @@ export function AccountButton({ name, sub, onSignOut, signOutLabel = 'Sign out',
 
   return (
     <>
-      <Pressable onPress={() => setOpen(true)} accessibilityRole="button" accessibilityLabel="Account" style={styles.button}>
+      <Pressable onPress={() => setOpen(true)} accessibilityRole="button" accessibilityLabel="Account" hitSlop={8}>
         <Avatar.Text size={32} label={name.trim().charAt(0).toUpperCase() || '?'} color={c.onPrimary} style={{ backgroundColor: c.primary }} />
       </Pressable>
       <ActionMenu
@@ -45,7 +45,3 @@ export function AccountButton({ name, sub, onSignOut, signOutLabel = 'Sign out',
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  button: { marginHorizontal: 8 },
-});

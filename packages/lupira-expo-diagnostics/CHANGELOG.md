@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.1
+- Accepts `@danbro96/lupira-expo-paper` ^0.5.0.
+
 ## 0.2.0
 - `buildInfo`: `APP_NAME` and `APP_VERSION` from the Expo config, beside `UPDATE_LABEL`.
 - `VersionLine`: the About line (name, marketing version, OTA label) every Settings screen ends with; moved here from `lupira-expo-paper`.

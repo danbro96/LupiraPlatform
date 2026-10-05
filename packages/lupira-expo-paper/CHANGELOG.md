@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0
+- `IconButton` forwards Paper's own props (`style`, `disabled`, `selected`, `size`) and no longer forces `margin: 0`.
+- `AccountButton` sets no margin of its own; its touch target comes from `hitSlop`.
+- `ScreenToolbar` and `Sheet` take their spacing and corner radius from the tokens; `Sheet` is one `maxHeight` (80%) for both anchors and its title is Paper's `titleMedium`.
+
 ## 0.4.0
 - Removed `VersionLine`; it lives in `lupira-expo-diagnostics`, which owns the build info it shows.
 

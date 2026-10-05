@@ -3,6 +3,7 @@ import { BackHandler, Pressable, StyleSheet } from 'react-native';
 import { Portal, Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SCRIM } from '@danbro96/lupira-tokens-core/color';
+import { radii, spacing } from '@danbro96/lupira-tokens-core/spacing';
 import { useColors } from '../theme/useColors.ts';
 
 /** A modal picker sheet: bottom-anchored, or top-anchored when it holds a search box so the keyboard never
@@ -27,14 +28,15 @@ export function Sheet({ title, anchor = 'bottom', onDismiss, children }: {
   const top = anchor === 'top';
   return (
     <Portal>
-      <Pressable style={[styles.backdrop, top ? styles.alignTop : styles.alignBottom]} onPress={onDismiss}>
+      <Pressable style={[styles.backdrop, { justifyContent: top ? 'flex-start' : 'flex-end' }]} onPress={onDismiss}>
         <Pressable
           style={[
-            top ? styles.topSheet : styles.bottomSheet,
-            { backgroundColor: c.surface, paddingTop: top ? insets.top + 8 : 16, paddingBottom: top ? 12 : insets.bottom + 12 },
+            styles.sheet,
+            top ? styles.topCorners : styles.bottomCorners,
+            { backgroundColor: c.surface, paddingTop: top ? insets.top + spacing.sm : spacing.lg, paddingBottom: top ? spacing.md : insets.bottom + spacing.md },
           ]}
         >
-          {title && <Text style={[styles.title, { color: c.text }]}>{title}</Text>}
+          {title && <Text variant="titleMedium" style={styles.title}>{title}</Text>}
           {children}
         </Pressable>
       </Pressable>
@@ -44,9 +46,8 @@ export function Sheet({ title, anchor = 'bottom', onDismiss, children }: {
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: SCRIM.backdrop },
-  alignTop: { justifyContent: 'flex-start' },
-  alignBottom: { justifyContent: 'flex-end' },
-  bottomSheet: { borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingHorizontal: 16, maxHeight: '80%' },
-  topSheet: { borderBottomLeftRadius: 16, borderBottomRightRadius: 16, paddingHorizontal: 16, maxHeight: '85%' },
-  title: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
+  sheet: { paddingHorizontal: spacing.lg, maxHeight: '80%' },
+  bottomCorners: { borderTopLeftRadius: radii.lg, borderTopRightRadius: radii.lg },
+  topCorners: { borderBottomLeftRadius: radii.lg, borderBottomRightRadius: radii.lg },
+  title: { marginBottom: spacing.xs },
 });
