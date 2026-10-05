@@ -60,6 +60,18 @@ describe('migrate', () => {
     expect(await db.first('PRAGMA user_version')).toEqual({ user_version: 2 });
   });
 
+  it('applies a failing step atomically: no partial DDL, user_version unchanged, and a fixed re-run succeeds', async () => {
+    const db = openNodeDb();
+    const broken = [LADDER[0], 'CREATE TABLE tags (id TEXT PRIMARY KEY);\nALTER TABLE nope ADD COLUMN x INTEGER;'];
+    await expect(migrate(db, broken)).rejects.toThrow(/nope/);
+    expect(await db.first('PRAGMA user_version')).toEqual({ user_version: 1 });
+    expect(await db.first("SELECT name FROM sqlite_master WHERE name = 'tags'")).toBeNull();
+
+    await migrate(db, [LADDER[0], 'CREATE TABLE tags (id TEXT PRIMARY KEY);\nALTER TABLE items ADD COLUMN x INTEGER;']);
+    expect(await db.first('PRAGMA user_version')).toEqual({ user_version: 2 });
+    expect(await db.first("SELECT name FROM sqlite_master WHERE name = 'tags'")).toEqual({ name: 'tags' });
+  });
+
   it('coalesces concurrent migrations on one handle', async () => {
     const db = openNodeDb();
     await Promise.all([migrate(db, LADDER), migrate(db, LADDER)]);

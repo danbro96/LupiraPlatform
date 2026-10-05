@@ -13,6 +13,22 @@ describe('problemMessage', () => {
   });
 });
 
+describe('ApiError.fromBody', () => {
+  it('parses title and traceId from a problem document', () => {
+    const e = ApiError.fromBody(422, '{"title":"Validation failed","detail":"Name is required","traceId":"00-abc-01"}', 'x');
+    expect(e).toMatchObject({ status: 422, message: 'Name is required', title: 'Validation failed', traceId: '00-abc-01' });
+  });
+
+  it('leaves title and traceId unset for a non-problem body', () => {
+    for (const body of ['upstream timeout', '', '"just a string"', '{"title":42}']) {
+      const e = ApiError.fromBody(502, body, 'HTTP 502');
+      expect(e.title).toBeUndefined();
+      expect(e.traceId).toBeUndefined();
+    }
+    expect(ApiError.fromBody(502, '', 'HTTP 502').message).toBe('HTTP 502');
+  });
+});
+
 describe('errorText', () => {
   it('shows an error’s message without its class name', () => {
     expect(errorText(new ApiError(400, 'End is before start'))).toBe('End is before start');

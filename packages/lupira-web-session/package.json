@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-web-session",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "BFF cookie-session plumbing for the Lupira SPAs: session user, sign-in/out, route gate, cookie transport.",
   "license": "MIT",
   "type": "module",
@@ -18,7 +18,7 @@
     "lint": "eslint ."
   },
   "peerDependencies": {
-    "@danbro96/lupira-http": "^0.1.0",
+    "@danbro96/lupira-http": "^0.1.0 || ^0.2.0",
     "@tanstack/react-query": "^5.103.2",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",

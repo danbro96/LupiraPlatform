@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+- `mobile()` allows `@danbro96/lupira-sync-engine` (including `/expo/triggers`) and `@danbro96/lupira-expo-query` from `sync`, `state` and `ui`.
+
 ## 0.2.0
 
 - `web()` and `mobile()` carry the `@danbro96/*` import policy (tokens, domain and sync-core everywhere; http, feedback, diagnostics, oidc and sqlite from data up; paper kit from ui; web session and web kits by layer) and allow npm and node-core imports, so an app config is the preset call alone.

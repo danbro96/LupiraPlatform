@@ -19,9 +19,7 @@ async function runMigrate(db: Db, migrations: readonly string[]): Promise<void> 
   const row = await db.first<{ user_version: number }>('PRAGMA user_version');
   const from = row?.user_version ?? 0;
   for (let v = from; v < migrations.length; v++) {
-    // PRAGMA can't be parameterized and user_version must commit WITH the DDL, so both run via exec
-    // inside one exclusive scope per step.
-    await db.exclusive(async () => undefined);   // drain writers before DDL
-    await db.exec(`${migrations[v]}\nPRAGMA user_version = ${v + 1};`);
+    // PRAGMA can't be parameterized; user_version commits with the step's DDL or not at all.
+    await db.exclusive((tx) => tx.exec(`${migrations[v]}\nPRAGMA user_version = ${v + 1};`));
   }
 }

@@ -11,6 +11,7 @@ const openDatabaseAsync = vi.hoisted(() => vi.fn());
 vi.mock('expo-sqlite', () => ({ openDatabaseAsync }));
 
 import { expoDb } from './expoDb.ts';
+import { migrate } from './migrate.ts';
 
 const released = () => new Error('Call to function NativeStatement.run has been rejected.\nShared object already released');
 
@@ -140,6 +141,17 @@ describe('exclusive', () => {
       if (sql === 'ROLLBACK') throw new Error('rollback failed');
     });
     await expect(db.exclusive(async () => { throw new Error('boom'); })).rejects.toThrow('boom');
+  });
+
+  it('runs a migration step\'s DDL and user_version inside one transaction', async () => {
+    const db = await expoDb('t')();
+    handle.execAsync.mockClear();
+    await migrate(db, ['CREATE TABLE a (id TEXT);']);
+    expect(statements()).toEqual([
+      'PRAGMA busy_timeout = 30000; BEGIN IMMEDIATE',
+      'CREATE TABLE a (id TEXT);\nPRAGMA user_version = 1;',
+      'COMMIT',
+    ]);
   });
 
   it('closes the connection when taking the lock fails', async () => {

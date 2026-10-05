@@ -1,0 +1,17 @@
+{
+  "extends": "@danbro96/lupira-config-ts/tsconfig.library.json",
+  "references": [
+    {
+      "path": "../lupira-domain-core"
+    },
+    {
+      "path": "../lupira-sync-core"
+    },
+    {
+      "path": "../lupira-expo-sqlite"
+    },
+    {
+      "path": "../lupira-http"
+    }
+  ]
+}

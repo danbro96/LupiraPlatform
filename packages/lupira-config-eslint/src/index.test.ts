@@ -47,6 +47,9 @@ describe('mobile()', () => {
       'src/ui/a.tsx': "import '../state/leaf';\nimport '../collector/leaf';\nimport '@danbro96/lupira-expo-paper/Button';\nimport '@danbro96/lupira-tokens-core/color';\n",
       'src/collector/a.ts': "import '../data/leaf';\nimport '../domain/leaf';\nimport '@danbro96/lupira-expo-oidc/oidc';\n",
       'src/data/a.test.ts': "import '@danbro96/lupira-expo-sqlite/node';\n",
+      'src/sync/a.ts': "import '@danbro96/lupira-sync-engine/engine';\nimport '@danbro96/lupira-sync-engine/expo/triggers';\nimport '@danbro96/lupira-expo-query/invalidateOnChange';\n",
+      'src/state/a.ts': "import '@danbro96/lupira-sync-engine/bannerState';\nimport '@danbro96/lupira-expo-query/mirrorQuery';\n",
+      'src/ui/b.tsx': "import '@danbro96/lupira-sync-engine/expo/triggers';\nimport '@danbro96/lupira-expo-query/online';\n",
     });
     expect(Object.entries(result).filter(([, v]) => v.length)).toEqual([]);
   });
@@ -63,6 +66,10 @@ describe('mobile()', () => {
     ['data imports the paper kit', 'src/data/bad.ts', "import '@danbro96/lupira-expo-paper/Button';"],
     ['domain imports the oidc client', 'src/domain/bad.ts', "import '@danbro96/lupira-expo-oidc/oidc';"],
     ['an unknown platform package', 'src/ui/bad.tsx', "import '@danbro96/lupira-nonexistent';"],
+    ['data imports the sync engine', 'src/data/bad.ts', "import '@danbro96/lupira-sync-engine/engine';"],
+    ['domain imports the sync engine', 'src/domain/bad.ts', "import '@danbro96/lupira-sync-engine/types';"],
+    ['data imports the query kit', 'src/data/bad.ts', "import '@danbro96/lupira-expo-query/mirrorQuery';"],
+    ['domain imports the query kit', 'src/domain/bad.ts', "import '@danbro96/lupira-expo-query/queryClient';"],
     ['production code imports the node test double', 'src/data/bad.ts', "import '@danbro96/lupira-expo-sqlite/node';"],
   ])('rejects: %s', async (_name, path, source) => {
     const result = await lint(mobile({ layers: [collector] }), { ...stack, [path]: `${source}\n` });

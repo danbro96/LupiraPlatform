@@ -9,11 +9,11 @@ export interface Tx {
   run(sql: string, params?: SqlValue[]): Promise<void>;
   all<T>(sql: string, params?: SqlValue[]): Promise<T[]>;
   first<T>(sql: string, params?: SqlValue[]): Promise<T | null>;
+  /** Multi-statement DDL (migrations). */
+  exec(sql: string): Promise<void>;
 }
 
 export interface Db extends Tx {
   /** Serialized, exclusive write transaction: no other statement interleaves; throw = rollback. */
   exclusive<T>(fn: (tx: Tx) => Promise<T>): Promise<T>;
-  /** Multi-statement DDL (migrations). */
-  exec(sql: string): Promise<void>;
 }

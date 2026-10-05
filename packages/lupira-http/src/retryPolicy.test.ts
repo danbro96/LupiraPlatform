@@ -15,18 +15,14 @@ describe('isTransientStatus', () => {
 });
 
 describe('isRetriableRequest', () => {
-  it('always replays reads', () => {
-    expect(isRetriableRequest('GET', false)).toBe(true);
-    expect(isRetriableRequest('head', false)).toBe(true);
-    expect(isRetriableRequest(undefined, false)).toBe(true); // fetch defaults to GET
+  it('replays reads', () => {
+    expect(isRetriableRequest('GET')).toBe(true);
+    expect(isRetriableRequest('head')).toBe(true);
+    expect(isRetriableRequest(undefined)).toBe(true); // fetch defaults to GET
   });
 
-  it('replays writes only under an Idempotency-Key', () => {
-    expect(isRetriableRequest('PUT', false)).toBe(false);
-    expect(isRetriableRequest('POST', false)).toBe(false);
-    expect(isRetriableRequest('POST', true)).toBe(true);
-    expect(isRetriableRequest('PATCH', true)).toBe(true);
-    expect(isRetriableRequest('DELETE', true)).toBe(true);
+  it('never replays writes', () => {
+    for (const m of ['POST', 'PUT', 'PATCH', 'DELETE']) expect(isRetriableRequest(m)).toBe(false);
   });
 });
 

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError, NETWORK_ERROR } from './apiError.ts';
 import { authPort, setAuthPort, type AuthPort } from './authPort.ts';
-import { createBearerMutator, type ApiEnvelope, type BearerMutatorOptions } from './mutator.ts';
+import { createBearerMutator, type BearerMutatorOptions } from './mutator.ts';
 
 type FetchCall = { url: string; headers: Headers };
 let calls: FetchCall[];
@@ -54,14 +54,13 @@ describe('createBearerMutator', () => {
   it('prefixes the backend origin and injects the bearer', async () => {
     stubPort();
     responses.push(json(200, { ok: true }));
-    const r = await run(mutator()<ApiEnvelope<{ ok: boolean }>>('/api/me'));
+    const r = await run(mutator()<{ ok: boolean }>('/api/me'));
 
     expect(calls[0].url).toBe('https://bff.test/api/me');
     expect(calls[0].headers.get('Authorization')).toBe('Bearer tok-1');
     expect(calls[0].headers.get('Accept')).toBe('application/json');
     expect(calls[0].headers.get('Cache-Control')).toBe('no-store');
-    expect(r.status).toBe(200);
-    expect(r.data.ok).toBe(true);
+    expect(r).toEqual({ ok: true });
   });
 
   it('takes an explicit base URL and a header decorator', async () => {
@@ -91,9 +90,9 @@ describe('createBearerMutator', () => {
   it('retries a transient 503 on reads and then succeeds', async () => {
     stubPort();
     responses.push(json(503), json(200, { ok: true }));
-    const r = await run(mutator()<ApiEnvelope<{ ok: boolean }>>('/api/me'));
+    const r = await run(mutator()<{ ok: boolean }>('/api/me'));
     expect(calls).toHaveLength(2);
-    expect(r.status).toBe(200);
+    expect(r).toEqual({ ok: true });
   });
 
   it('does not retry when retry is off', async () => {
@@ -103,23 +102,22 @@ describe('createBearerMutator', () => {
     expect(calls).toHaveLength(1);
   });
 
-  it('does not retry an unkeyed write', async () => {
+  it.each(['POST', 'PUT', 'PATCH', 'DELETE'])('never retries a %s on a transient status, even with an Idempotency-Key', async (method) => {
     stubPort();
     responses.push(json(503));
-    await expect(run(mutator()('/api/items/x', { method: 'PUT', body: '{}' }))).rejects.toMatchObject({ status: 503 });
+    const init = { method, body: '{}', headers: { 'Idempotency-Key': '0198c0de-0000-7000-8000-000000000000' } };
+    await expect(run(mutator()('/api/items/x', init))).rejects.toMatchObject({ status: 503 });
     expect(calls).toHaveLength(1);
   });
 
-  it('retries a keyed write', async () => {
+  it('never retries a write on a transport failure', async () => {
     stubPort();
-    responses.push(json(503), json(200));
-    const r = await run(mutator()<ApiEnvelope<unknown>>('/api/items/x', {
-      method: 'PUT',
-      body: '{}',
-      headers: { 'Idempotency-Key': '0198c0de-0000-7000-8000-000000000000' },
-    }));
-    expect(calls).toHaveLength(2);
-    expect(r.status).toBe(200);
+    const failing = vi.fn(async () => {
+      throw new TypeError('network down');
+    });
+    vi.stubGlobal('fetch', failing);
+    await expect(run(mutator()('/api/items', { method: 'POST', body: '{}' }))).rejects.toMatchObject({ status: 0 });
+    expect(failing).toHaveBeenCalledTimes(1);
   });
 
   it('forces one refresh on 401 and replays with the rotated token', async () => {
@@ -127,10 +125,32 @@ describe('createBearerMutator', () => {
     stubPort({ refresh });
     responses.push(json(401), json(200));
 
-    const r = await run(mutator()<ApiEnvelope<unknown>>('/api/me'));
+    const r = await run(mutator()<{ ok: boolean }>('/api/me'));
     expect(refresh).toHaveBeenCalledWith(true, 'tok-1');
     expect(calls[1].headers.get('Authorization')).toBe('Bearer tok-2');
-    expect(r.status).toBe(200);
+    expect(r).toEqual({});
+  });
+
+  it.each(['POST', 'PUT', 'DELETE'])('forces one refresh on 401 and replays a %s with the rotated token', async (method) => {
+    const refresh = vi.fn(async () => 'tok-2');
+    stubPort({ refresh });
+    responses.push(json(401), json(200, { id: 'x' }));
+
+    const r = await run(mutator()<{ id: string }>('/api/items/x', { method, body: '{}' }));
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(calls).toHaveLength(2);
+    expect(calls[1].headers.get('Authorization')).toBe('Bearer tok-2');
+    expect(r).toEqual({ id: 'x' });
+  });
+
+  it('does not replay a write when the forced refresh returns the same token', async () => {
+    const refresh = vi.fn(async () => 'tok-1');
+    stubPort({ refresh });
+    responses.push(json(401));
+
+    await expect(run(mutator()('/api/items', { method: 'POST', body: '{}' }))).rejects.toMatchObject({ status: 401 });
+    expect(refresh).toHaveBeenCalledWith(true, 'tok-1');
+    expect(calls).toHaveLength(1);
   });
 
   it('gives up when the forced refresh returns the same token', async () => {
@@ -162,21 +182,27 @@ describe('createBearerMutator', () => {
     expect(calls).toHaveLength(2);
   });
 
-  it('does not re-auth an unkeyed write, nor treat a 403 as an auth failure', async () => {
+  it('does not re-auth when no token was sent, nor treat a 403 as an auth failure', async () => {
     const refresh = vi.fn(async () => 'tok-2');
-    stubPort({ refresh });
+    stubPort({ refresh, getToken: () => null });
     responses.push(json(401), json(403));
 
     await expect(run(mutator()('/api/items', { method: 'POST', body: '{}' }))).rejects.toMatchObject({ status: 401 });
+    stubPort({ refresh });
     await expect(run(mutator()('/api/me'))).rejects.toMatchObject({ status: 403 });
     expect(refresh).not.toHaveBeenCalled();
   });
 
-  it('surfaces a problem document’s detail, else the status', async () => {
+  it('surfaces a problem document’s detail, title and traceId, else the status', async () => {
     stubPort();
-    responses.push(json(409, { title: 'Conflict', detail: 'Already linked' }), text(404));
-    await expect(run(mutator()('/api/a'))).rejects.toMatchObject({ status: 409, message: 'Already linked' });
-    await expect(run(mutator()('/api/b'))).rejects.toMatchObject({ status: 404, message: 'HTTP 404' });
+    responses.push(json(409, { title: 'Conflict', detail: 'Already linked', traceId: '00-abc-01' }), text(404));
+    await expect(run(mutator()('/api/a'))).rejects.toMatchObject({
+      status: 409,
+      message: 'Already linked',
+      title: 'Conflict',
+      traceId: '00-abc-01',
+    });
+    await expect(run(mutator()('/api/b'))).rejects.toMatchObject({ status: 404, message: 'HTTP 404', title: undefined });
   });
 
   it('maps transport failure to ApiError(0) after the retry budget', async () => {
@@ -204,14 +230,11 @@ describe('createBearerMutator', () => {
     expect(await guarded).toMatchObject({ status: 0 });
   });
 
-  it('returns undefined data for 204, plain text as text, and the bare body without the envelope', async () => {
+  it('returns the parsed body: undefined for 204, plain text as text, JSON as an object', async () => {
     stubPort();
-    responses.push(() => new Response(null, { status: 204 }), text(200, 'pong'), json(200, { id: 'x' }));
-    const empty = await run(mutator()<ApiEnvelope<undefined>>('/api/items/x'));
-    const pong = await run(mutator()<ApiEnvelope<string>>('/api/ping'));
-    const bare = await run(mutator({ envelope: false })<{ id: string }>('/api/items/x'));
-    expect(empty).toMatchObject({ status: 204, data: undefined });
-    expect(pong.data).toBe('pong');
-    expect(bare).toEqual({ id: 'x' });
+    responses.push(() => new Response(null, { status: 204 }), text(200, 'pong'), json(201, { id: 'x' }));
+    expect(await run(mutator()<undefined>('/api/items/x', { method: 'DELETE' }))).toBeUndefined();
+    expect(await run(mutator()<string>('/api/ping'))).toBe('pong');
+    expect(await run(mutator()<{ id: string }>('/api/items', { method: 'POST', body: '{}' }))).toEqual({ id: 'x' });
   });
 });

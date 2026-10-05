@@ -15,13 +15,13 @@ export function openNodeDb(path = ':memory:'): Db {
     },
     all: async <T,>(sql: string, params: SqlValue[] = []) => raw.prepare(sql).all(...params) as T[],
     first: async <T,>(sql: string, params: SqlValue[] = []) => (raw.prepare(sql).get(...params) as T | undefined) ?? null,
+    exec: async (sql) => raw.exec(sql),
   };
 
   let queue: Promise<unknown> = Promise.resolve();
 
   return {
     ...tx,
-    exec: async (sql) => raw.exec(sql),
     exclusive<T>(fn: (t: Tx) => Promise<T>): Promise<T> {
       const next = queue.then(async () => {
         raw.exec('BEGIN IMMEDIATE');

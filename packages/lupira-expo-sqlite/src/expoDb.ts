@@ -64,13 +64,13 @@ function wrapTx(h: SQLite.SQLiteDatabase, guard: Guard): Tx {
     },
     all: async <T,>(sql: string, params: SqlValue[] = []) => guard(() => h.getAllAsync<T>(sql, params as SQLite.SQLiteBindParams)),
     first: async <T,>(sql: string, params: SqlValue[] = []) => guard(() => h.getFirstAsync<T>(sql, params as SQLite.SQLiteBindParams)),
+    exec: (sql) => guard(() => h.execAsync(sql)),
   };
 }
 
 function wrap(name: string, raw: SQLite.SQLiteDatabase, guard: Guard, retrying: Guard): Db {
   return {
     ...wrapTx(raw, guard),
-    exec: (sql) => guard(() => raw.execAsync(sql)),
     // BEGIN IMMEDIATE takes the write lock before the first read, so the busy handler waits for other writers;
     // a deferred BEGIN that reads then writes fails instantly with a stale snapshot instead.
     async exclusive<T>(fn: (tx: Tx) => Promise<T>): Promise<T> {

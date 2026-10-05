@@ -1,0 +1,6 @@
+{
+  "extends": "@danbro96/lupira-config-ts/tsconfig.library.json",
+  "compilerOptions": {
+    "emitDeclarationOnly": true
+  }
+}

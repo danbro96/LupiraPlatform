@@ -1,10 +1,6 @@
-import { ApiError, NETWORK_ERROR, problemMessage } from './apiError.ts';
+import { ApiError, NETWORK_ERROR } from './apiError.ts';
 import type { AuthPort } from './authPort.ts';
 import { MAX_RETRIES, isRetriableRequest, isTransientStatus, retryDelayMs } from './retryPolicy.ts';
-
-/** What every generated fetcher returns: the status-discriminated envelope (orval's per-status unions
- *  structurally match it, so `if (r.status === 200)` narrows `r.data`). */
-export type ApiEnvelope<T> = { status: number; data: T; headers: Headers };
 
 export type ApiMutator = <T>(url: string, init?: RequestInit) => Promise<T>;
 
@@ -13,15 +9,15 @@ export interface BearerMutatorOptions {
   baseUrl?: string | (() => string);
   timeoutMs: number;
   retry?: false | { maxRetries?: number };
-  envelope?: boolean;
   decorate?: (headers: Headers) => void;
 }
 
-/** Orval custom mutator. Injects the bearer (none while the port has no token), bounds every attempt with a
- *  timeout, retries transient failures per retryPolicy, and on a terminal 401 for a retriable request forces ONE
- *  coalesced refresh — if that actually rotated the token, the retry budget resets and the call replays. */
+/** Orval custom mutator. Resolves to the parsed body (204 → undefined) and throws ApiError otherwise. Injects
+ *  the bearer (none while the port has no token), bounds every attempt with a timeout, retries transient failures
+ *  of reads per retryPolicy, and on a 401 for any method forces ONE coalesced refresh — if that actually rotated
+ *  the token, the retry budget resets and the call replays (the server rejected it before executing). */
 export function createBearerMutator(options: BearerMutatorOptions): ApiMutator {
-  const { timeoutMs, retry, envelope = true, decorate } = options;
+  const { timeoutMs, retry, decorate } = options;
   const maxRetries = retry === false ? 0 : (retry?.maxRetries ?? MAX_RETRIES);
   const portOf = typeof options.auth === 'function' ? options.auth : () => options.auth as AuthPort;
 
@@ -38,9 +34,8 @@ export function createBearerMutator(options: BearerMutatorOptions): ApiMutator {
     if (init?.body && !(typeof FormData !== 'undefined' && init.body instanceof FormData) && !headers.has('Content-Type'))
       headers.set('Content-Type', 'application/json');
 
-    const retriable = isRetriableRequest(init?.method, headers.has('Idempotency-Key'));
-    const entryToken = auth.getToken();
-    let token = entryToken;
+    const retriable = isRetriableRequest(init?.method);
+    let token = auth.getToken();
     let triedReauth = false;
 
     for (let attempt = 0; ; attempt++) {
@@ -59,10 +54,7 @@ export function createBearerMutator(options: BearerMutatorOptions): ApiMutator {
         throw new ApiError(0, NETWORK_ERROR);
       }
 
-      if (res.ok) {
-        const data = res.status === 204 ? undefined : parseBody(await res.text());
-        return (envelope ? { status: res.status, data, headers: res.headers } : data) as T;
-      }
+      if (res.ok) return (res.status === 204 ? undefined : parseBody(await res.text())) as T;
 
       if (retriable && isTransientStatus(res.status) && attempt < maxRetries) {
         await delay(retryDelayMs(attempt, res.headers.get('Retry-After')));
@@ -71,9 +63,9 @@ export function createBearerMutator(options: BearerMutatorOptions): ApiMutator {
 
       // One forced re-auth per call: the store decides transient-vs-definitive; a genuinely fresh token
       // (≠ what we sent) earns a full new retry budget.
-      if (res.status === 401 && retriable && !triedReauth && entryToken) {
+      if (res.status === 401 && !triedReauth && token) {
         triedReauth = true;
-        const fresh = await auth.refresh(true, token ?? undefined);
+        const fresh = await auth.refresh(true, token);
         if (fresh && fresh !== token) {
           token = fresh;
           attempt = -1;
@@ -82,7 +74,7 @@ export function createBearerMutator(options: BearerMutatorOptions): ApiMutator {
       }
 
       const body = await res.text().catch(() => '');
-      throw new ApiError(res.status, problemMessage(body, res.statusText || `HTTP ${res.status}`));
+      throw ApiError.fromBody(res.status, body, res.statusText || `HTTP ${res.status}`);
     }
   };
 }

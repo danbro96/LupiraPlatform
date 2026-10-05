@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-config-eslint",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "ESLint flat-config presets enforcing the Lupira layered import boundaries.",
   "license": "MIT",
   "type": "module",

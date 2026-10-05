@@ -9,10 +9,10 @@ export function isTransientStatus(status: number): boolean {
   return status === 0 || status === 429 || status >= 500;
 }
 
-/** Reads are always replayable; writes only when the caller supplied an Idempotency-Key (the server dedups). */
-export function isRetriableRequest(method: string | undefined, hasIdempotencyKey: boolean): boolean {
+/** Only reads are replayed in-request; writes are retried by the caller's outbox, never here. */
+export function isRetriableRequest(method: string | undefined): boolean {
   const m = (method ?? 'GET').toUpperCase();
-  return m === 'GET' || m === 'HEAD' || hasIdempotencyKey;
+  return m === 'GET' || m === 'HEAD';
 }
 
 /** Honors a numeric Retry-After (seconds, capped); else exponential backoff with jitter. `attempt` is 0-based. */

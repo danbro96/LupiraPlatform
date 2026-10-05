@@ -1,0 +1,56 @@
+{
+  "name": "@danbro96/lupira-sync-engine",
+  "version": "0.1.0",
+  "description": "Generic offline kernel for the Lupira mobile apps: docs, outbox, cursors and meta over the Db port, driven by per-aggregate modules.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@danbro96/lupira-sync-core": "^0.1.0"
+  },
+  "peerDependencies": {
+    "@danbro96/lupira-expo-sqlite": "^0.4.0",
+    "@danbro96/lupira-http": "^0.2.0",
+    "@react-native-community/netinfo": ">=12.0.1",
+    "expo-background-task": ">=57.0.21",
+    "expo-task-manager": ">=57.0.21",
+    "react-native": ">=0.86.3"
+  },
+  "peerDependenciesMeta": {
+    "@danbro96/lupira-http": {
+      "optional": true
+    },
+    "@react-native-community/netinfo": {
+      "optional": true
+    },
+    "expo-background-task": {
+      "optional": true
+    },
+    "expo-task-manager": {
+      "optional": true
+    },
+    "react-native": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danbro96/LupiraPlatform.git",
+    "directory": "packages/lupira-sync-engine"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0
+
+- `migrate`: each step's DDL and `PRAGMA user_version` run in one exclusive transaction and commit together; a failing step leaves no partial schema.
+- `types`: `exec` moves from `Db` to `Tx` (still on `Db`), so DDL can run inside `exclusive`.
+
 ## 0.3.0
 
 - `exclusive` opens its own connection and takes the write lock with `BEGIN IMMEDIATE`, so the busy timeout applies to every transaction; the deferred `BEGIN` failed instantly (`database is locked`) when another connection committed between its read and its write.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Peer range admits `@danbro96/lupira-http` 0.2.0.
+
 ## 0.1.0
 
 - `session`: `SessionUser`, `getSessionUser`, `login`, `logout`.
