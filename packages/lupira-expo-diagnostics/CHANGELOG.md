@@ -2,6 +2,7 @@
 
 ## 0.2.2
 - Accepts `@danbro96/lupira-expo-paper` ^0.6.0.
+- Peer `expo-constants` relaxed to >=57.0.19, so apps on that patch keep their native fingerprint.
 
 ## 0.2.1
 - Accepts `@danbro96/lupira-expo-paper` ^0.5.0.
