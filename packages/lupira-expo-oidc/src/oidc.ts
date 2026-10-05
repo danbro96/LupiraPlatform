@@ -160,3 +160,9 @@ export function decodeJwt(token: string): Record<string, unknown> {
     return {};
   }
 }
+
+export function hasAudience(token: string | null, audience: string): boolean {
+  if (!token) return false;
+  const aud = decodeJwt(token).aud;
+  return Array.isArray(aud) ? aud.includes(audience) : aud === audience;
+}

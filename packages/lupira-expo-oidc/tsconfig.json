@@ -1,5 +1,10 @@
 {
   "extends": "@danbro96/lupira-config-ts/tsconfig.library.json",
+  "references": [
+    {
+      "path": "../lupira-http"
+    }
+  ],
   "compilerOptions": {
     "lib": [
       "ES2022",

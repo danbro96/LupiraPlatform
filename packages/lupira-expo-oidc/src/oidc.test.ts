@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const fetchDiscoveryAsync = vi.fn();
 vi.mock('expo-auth-session', () => ({ fetchDiscoveryAsync: (issuer: string) => fetchDiscoveryAsync(issuer) }));
 
-import { RefreshError, createOidcClient, decodeJwt } from './oidc.ts';
+import { RefreshError, createOidcClient, decodeJwt, hasAudience } from './oidc.ts';
 
 let fetchMock: ReturnType<typeof vi.fn>;
 const log = vi.fn();
@@ -78,5 +78,21 @@ describe('decodeJwt', () => {
   it('gives nothing for garbage', () => {
     expect(decodeJwt('nope')).toEqual({});
     expect(decodeJwt('h.!!!.s')).toEqual({});
+  });
+});
+
+describe('hasAudience', () => {
+  const jwt = (claims: Record<string, unknown>) => `h.${Buffer.from(JSON.stringify(claims)).toString('base64url')}.s`;
+
+  it('matches an audience array or a single audience string', () => {
+    expect(hasAudience(jwt({ aud: ['lupira-photos-mobile', 'lupira-geo'] }), 'lupira-geo')).toBe(true);
+    expect(hasAudience(jwt({ aud: 'lupira-geo' }), 'lupira-geo')).toBe(true);
+  });
+
+  it('is false without the audience, without a token, or for garbage', () => {
+    expect(hasAudience(jwt({ aud: ['lupira-photo'] }), 'lupira-geo')).toBe(false);
+    expect(hasAudience(jwt({}), 'lupira-geo')).toBe(false);
+    expect(hasAudience(null, 'lupira-geo')).toBe(false);
+    expect(hasAudience('not-a-jwt', 'lupira-geo')).toBe(false);
   });
 });

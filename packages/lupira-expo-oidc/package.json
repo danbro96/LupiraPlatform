@@ -1,7 +1,7 @@
 {
   "name": "@danbro96/lupira-expo-oidc",
-  "version": "0.2.0",
-  "description": "OIDC for the Lupira Expo apps: discovery, code exchange, refresh, JWT claims, secure token storage, crypto polyfill.",
+  "version": "0.3.0",
+  "description": "OIDC for the Lupira Expo apps: auth store, discovery, code exchange, refresh, JWT claims, secure token storage, crypto polyfill.",
   "license": "MIT",
   "type": "module",
   "sideEffects": [
@@ -20,9 +20,11 @@
     "lint": "eslint ."
   },
   "peerDependencies": {
+    "@danbro96/lupira-http": "^0.1.0 || ^0.2.0",
     "expo-auth-session": ">=57.0.13",
     "expo-crypto": ">=57.0.3",
-    "expo-secure-store": ">=57.0.4"
+    "expo-secure-store": ">=57.0.4",
+    "zustand": "^5.0.15"
   },
   "repository": {
     "type": "git",
