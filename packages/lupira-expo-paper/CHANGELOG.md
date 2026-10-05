@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0
+- `useStackScreenOptions`: native-stack `screenOptions` that pad each screen above the system navigation bar (edge-to-edge).
+- `Screen` (app background + optional status strip), `HeaderActions` (≤2 icons + overflow menu), `AccountButton` (avatar menu: Settings, Sign out), `IdentityHeader`, `VersionLine`, `SettingsNote`, `SettingsAction`, `Sheet`.
+- Removed `SettingsButton`; use `AccountButton`. `ICONS`/`configureIcons`: `settings` dropped, `more` added.
+
 ## 0.1.2
 - `navLight`/`navDark` are typed as `@react-navigation/native`'s `Theme`, so apps on React Navigation 7.3.15+ need no cast.
 
