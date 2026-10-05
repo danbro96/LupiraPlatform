@@ -48,7 +48,7 @@ describe('mobile()', () => {
       'src/collector/a.ts': "import '../data/leaf';\nimport '../domain/leaf';\nimport '@danbro96/lupira-expo-oidc/oidc';\n",
       'src/data/a.test.ts': "import '@danbro96/lupira-expo-sqlite/node';\n",
       'src/sync/a.ts': "import '@danbro96/lupira-sync-engine/engine';\nimport '@danbro96/lupira-sync-engine/expo/triggers';\nimport '@danbro96/lupira-expo-query/invalidateOnChange';\n",
-      'src/state/a.ts': "import '@danbro96/lupira-sync-engine/bannerState';\nimport '@danbro96/lupira-expo-query/mirrorQuery';\n",
+      'src/state/a.ts': "import '@danbro96/lupira-sync-engine/bannerState';\nimport '@danbro96/lupira-expo-query/mirrorQuery';\nimport '@danbro96/lupira-expo-oidc/authStore';\n",
       'src/ui/b.tsx': "import '@danbro96/lupira-sync-engine/expo/triggers';\nimport '@danbro96/lupira-expo-query/online';\n",
     });
     expect(Object.entries(result).filter(([, v]) => v.length)).toEqual([]);

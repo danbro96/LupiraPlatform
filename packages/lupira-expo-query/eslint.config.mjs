@@ -10,5 +10,6 @@ export default pure({
     '@tanstack/react-query-persist-client',
     'expo-sqlite',
     'react',
+    'react-native',
   ],
 });

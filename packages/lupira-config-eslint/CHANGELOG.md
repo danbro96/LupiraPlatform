@@ -2,7 +2,7 @@
 
 ## 0.3.0
 
-- `mobile()` allows `@danbro96/lupira-sync-engine` (including `/expo/triggers`) and `@danbro96/lupira-expo-query` from `sync`, `state` and `ui`.
+- `mobile()` allows `@danbro96/lupira-sync-engine` (including `/expo/triggers`) and `@danbro96/lupira-expo-query` from `sync`, `state` and `ui`, and `@danbro96/lupira-expo-oidc/authStore` from `state` and `ui`.
 
 ## 0.2.0
 

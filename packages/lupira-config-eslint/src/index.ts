@@ -187,6 +187,7 @@ export function mobile({ ignores = [], generated = 'src/data/api/generated', dom
     { from: { element: { type: 'domain' } }, allow: [platform('@danbro96/lupira-http', 'apiError')] },
     ...fromEach([...STACK, ...extra], dataUp),
     ...fromEach(['sync', 'state', 'ui'], [platform(['@danbro96/lupira-sync-engine', '@danbro96/lupira-expo-query'])]),
+    ...fromEach(['state', 'ui'], [platform('@danbro96/lupira-expo-oidc', 'authStore')]),
     { from: { element: { type: 'ui' } }, allow: [platform(['@danbro96/lupira-expo-paper', '@danbro96/lupira-expo-diagnostics'])] },
     ...more,
   ];
