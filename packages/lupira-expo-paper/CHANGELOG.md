@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.0
+- Removed `VersionLine`; it lives in `lupira-expo-diagnostics`, which owns the build info it shows.
+
 ## 0.3.0
 - `TextField` no longer sets `flex: 1`; it sizes itself. Put `style={{ flex: 1 }}` on a field that shares a row. `fieldGap` (theme/styles) spaces stacked fields.
 

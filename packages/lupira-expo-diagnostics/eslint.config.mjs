@@ -8,6 +8,7 @@ export default pure({
     '@danbro96/lupira-tokens-core',
     '@react-navigation/native',
     '@sentry/react-native',
+    'expo-constants',
     'expo-updates',
     'react',
     'react-native',

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0
+- `buildInfo`: `APP_NAME` and `APP_VERSION` from the Expo config, beside `UPDATE_LABEL`.
+- `VersionLine`: the About line (name, marketing version, OTA label) every Settings screen ends with; moved here from `lupira-expo-paper`.
+- `initSentry(dsn, options?)`: the shared Sentry setup (off without a DSN, no default PII, environment, OTA tags).
+- Peer `lupira-expo-paper` ^0.3.0 || ^0.4.0; new peer `expo-constants`.
+
 ## 0.1.3
 - Accepts `@danbro96/lupira-expo-paper` ^0.3.0.
 
