@@ -6,7 +6,8 @@ import { TextInput } from 'react-native-paper';
 // `editable` stays for call-site compatibility and maps onto Paper's `disabled`.
 type Props = Omit<ComponentProps<typeof TextInput>, 'mode' | 'theme'> & { editable?: boolean };
 
-/** Shared single-line/multiline text input. Replaces the duplicated `input` StyleSheet blocks. */
+/** Shared single-line/multiline text input. Sizes itself; the caller places it (`style={{ flex: 1 }}` in a row,
+ *  `fieldGap` between stacked fields). */
 export function TextField({ style, multiline, editable, ...props }: Props) {
   return (
     <TextInput
@@ -15,12 +16,11 @@ export function TextField({ style, multiline, editable, ...props }: Props) {
       dense
       multiline={multiline}
       disabled={editable === false}
-      style={[styles.input, multiline && styles.multiline, style]}
+      style={[multiline && styles.multiline, style]}
     />
   );
 }
 
 const styles = StyleSheet.create({
-  input: { flex: 1 },
   multiline: { minHeight: 96 },
 });

@@ -9,3 +9,6 @@ export const cardSurface = (c: Palette) => ({
   padding: spacing.md,
   gap: spacing.xs,
 });
+
+/** The gap above a field stacked under another in a column. */
+export const fieldGap = { marginTop: spacing.md };

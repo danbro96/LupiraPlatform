@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.0
+- `TextField` no longer sets `flex: 1`; it sizes itself. Put `style={{ flex: 1 }}` on a field that shares a row. `fieldGap` (theme/styles) spaces stacked fields.
+
 ## 0.2.0
 - `useStackScreenOptions`: native-stack `screenOptions` that pad each screen above the system navigation bar (edge-to-edge).
 - `Screen` (app background + optional status strip), `HeaderActions` (≤2 icons + overflow menu), `AccountButton` (avatar menu: Settings, Sign out), `IdentityHeader`, `VersionLine`, `SettingsNote`, `SettingsAction`, `Sheet`.

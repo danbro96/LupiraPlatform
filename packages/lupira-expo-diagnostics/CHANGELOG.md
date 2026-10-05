@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.3
+- Accepts `@danbro96/lupira-expo-paper` ^0.3.0.
+
 ## 0.1.2
 - Accepts `@danbro96/lupira-expo-paper` ^0.2.0.
 
