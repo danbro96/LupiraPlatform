@@ -52,26 +52,7 @@ public static partial class UpstreamSpecMerger
             var schemas = doc["components"]?["schemas"]?.AsObject() ?? [];
             var live = ReachableSchemas(kept.Paths, schemas);
 
-            // A name already claimed with a DIFFERENT shape gets its cluster as a namespace; identical
-            // shapes dedupe for free.
-            var rename = new Dictionary<string, string>(StringComparer.Ordinal);
-            foreach (var name in live)
-            {
-                var signature = schemas[name]?.ToJsonString() ?? "null";
-                if (!claimedSchemas.TryGetValue(name, out var prior))
-                {
-                    claimedSchemas[name] = (signature, cluster);
-                    continue;
-                }
-
-                if (prior.Signature == signature) continue;
-
-                var alias = Namespaced(options, cluster, name, $"Schema {name} differs between {prior.Cluster} and {cluster}.");
-                rename[name] = alias;
-                claimedSchemas[alias] = (signature, cluster);
-                renames.Add($"{name} ({prior.Cluster} vs {cluster}) -> {alias}");
-            }
-
+            var rename = NamespaceCollisions(cluster, schemas, live, claimedSchemas, options, renames);
             RewriteSchemaRefs(kept.Paths, rename);
 
             // Operation ids name the generated functions, and they collide too — cal and tasks both
@@ -133,6 +114,48 @@ public static partial class UpstreamSpecMerger
         };
 
         return new MergeResult { Document = document, NotExposed = notExposed, Renames = renames };
+    }
+
+    /// <summary>
+    /// A name already claimed with a different shape gets its cluster as a namespace; identical shapes dedupe.
+    /// Shapes compare with their refs rewritten, so a schema pointing at a renamed one is renamed too.
+    /// </summary>
+    private static Dictionary<string, string> NamespaceCollisions(
+        string cluster,
+        JsonObject schemas,
+        List<string> live,
+        Dictionary<string, (string Signature, string Cluster)> claimedSchemas,
+        UpstreamSpecMergerOptions options,
+        List<string> renames)
+    {
+        var rename = new Dictionary<string, string>(StringComparer.Ordinal);
+        var contested = live.Where(claimedSchemas.ContainsKey).ToList();
+        bool renamedAny;
+        do
+        {
+            renamedAny = false;
+            foreach (var name in contested.Where(n => !rename.ContainsKey(n)))
+            {
+                var prior = claimedSchemas[name];
+                if (prior.Signature == Signature(schemas[name], rename)) continue;
+
+                rename[name] = Namespaced(options, cluster, name, $"Schema {name} differs between {prior.Cluster} and {cluster}.");
+                renames.Add($"{name} ({prior.Cluster} vs {cluster}) -> {rename[name]}");
+                renamedAny = true;
+            }
+        }
+        while (renamedAny);
+
+        foreach (var name in live.Where(n => rename.ContainsKey(n) || !contested.Contains(n)))
+            claimedSchemas[rename.GetValueOrDefault(name, name)] = (Signature(schemas[name], rename), cluster);
+        return rename;
+    }
+
+    private static string Signature(JsonNode? schema, Dictionary<string, string> rename)
+    {
+        if (schema?.DeepClone() is not { } copy) return "null";
+        RewriteSchemaRefs(copy, rename);
+        return copy.ToJsonString();
     }
 
     private static string Namespaced(UpstreamSpecMergerOptions options, string cluster, string name, string conflict)

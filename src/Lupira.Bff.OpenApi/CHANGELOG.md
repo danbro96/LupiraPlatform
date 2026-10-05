@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.1
+- `NamespaceCollisions`: a schema that references a namespaced schema is namespaced too; two schemas dedupe only when their text matches after `$ref` rewriting.
+
 ## 0.3.0
 - `AddLupiraBffOpenApi` hands each configured upstream spec to the proxy's route guards (`Lupira.Bff.Proxy` 0.2.0 `RouteGuardOptions`).
 

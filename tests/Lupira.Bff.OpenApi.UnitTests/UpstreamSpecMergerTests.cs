@@ -148,6 +148,28 @@ public class UpstreamSpecMergerTests
     }
 
     [Fact]
+    public void A_schema_pointing_at_a_namespaced_schema_is_namespaced_too()
+    {
+        var merged = MergePages(calItemField: "title", tasksItemField: "listId");
+        var schemas = merged.Document["components"]!["schemas"]!.AsObject();
+
+        Assert.Equal("#/components/schemas/Item", ChangedRef(schemas["Page"]!));
+        Assert.Equal("#/components/schemas/TasksItem", ChangedRef(schemas["TasksPage"]!));
+        Assert.Contains("Page (cal-api vs tasks-api) -> TasksPage", merged.Renames);
+        var tasksResponse = merged.Document["paths"]!["/tasks-api/sync/items"]!["get"]!["responses"]!["200"]!;
+        Assert.Equal("#/components/schemas/TasksPage", tasksResponse["content"]!["application/json"]!["schema"]!["$ref"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void Schemas_with_identical_referents_still_dedupe()
+    {
+        var merged = MergePages(calItemField: "title", tasksItemField: "title");
+
+        Assert.DoesNotContain(merged.Renames, r => !r.EndsWith("()", StringComparison.Ordinal));
+        Assert.Equal(["Item", "Page"], merged.Document["components"]!["schemas"]!.AsObject().Select(s => s.Key).Order(StringComparer.Ordinal));
+    }
+
+    [Fact]
     public void A_scheme_the_document_does_not_define_throws()
     {
         var options = Fixture.TasksOptions();
@@ -158,6 +180,46 @@ public class UpstreamSpecMergerTests
     }
 
     private static MergeResult Merged(string fixture) => fixture == "cal" ? Cal : Tasks;
+
+    private static MergeResult MergePages(string calItemField, string tasksItemField)
+    {
+        var surface = ExposedSurface.Parse("""
+            {
+              "clusters": { "cal-api": { "prefix": "/api" }, "tasks-api": { "prefix": "/tasks-api" } },
+              "operations": { "cal-api": ["GET /sync/items"], "tasks-api": ["GET /sync/items"] }
+            }
+            """);
+        var options = new UpstreamSpecMergerOptions { NamespaceCollisions = true, SecurityFor = _ => ["Bearer"] };
+        options.SecuritySchemes["Bearer"] = BffSecuritySchemes.Bearer("Access token.");
+        return UpstreamSpecMerger.Merge(surface, [PageUpstream("cal-api", calItemField), PageUpstream("tasks-api", tasksItemField)], options);
+    }
+
+    private static UpstreamDocument PageUpstream(string cluster, string itemField) => new()
+    {
+        Cluster = cluster,
+        Document = JsonNode.Parse($$"""
+            {
+              "openapi": "3.1.1",
+              "info": { "title": "{{cluster}}", "version": "v1" },
+              "paths": {
+                "/sync/items": {
+                  "get": {
+                    "operationId": "SyncItems",
+                    "responses": { "200": { "description": "OK", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Page" } } } } }
+                  }
+                }
+              },
+              "components": {
+                "schemas": {
+                  "Page": { "type": "object", "properties": { "changed": { "type": "array", "items": { "$ref": "#/components/schemas/Item" } } } },
+                  "Item": { "type": "object", "properties": { "{{itemField}}": { "type": "string" } } }
+                }
+              }
+            }
+            """)!.AsObject(),
+    };
+
+    private static string ChangedRef(JsonNode page) => page["properties"]!["changed"]!["items"]!["$ref"]!.GetValue<string>();
 
     private static IEnumerable<(string Path, string Verb, JsonObject Operation)> Operations(MergeResult merged)
     {
