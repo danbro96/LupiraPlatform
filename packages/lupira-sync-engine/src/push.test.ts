@@ -1,5 +1,5 @@
 import { PARK_AFTER_ATTEMPTS } from '@danbro96/lupira-sync-core/backoff';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { cmd, create, createHarness, HttpError, remove, retitle, type Harness } from '../test/harness.ts';
 
 const HOUR = 60 * 60_000;
@@ -212,6 +212,21 @@ describe('retry and discard', () => {
 
     expect(h.replayed).toEqual([cmd(1)]);
     expect(await engine.doc('note', 'a')).toMatchObject({ doc: { title: 'Note a' } });
+  });
+
+  it('a held op replays on its own once due, without another trigger', async () => {
+    vi.useFakeTimers();
+    try {
+      await engine.enqueue(create(1, 'a'), { holdMs: 5_000 });
+      await engine.push();
+      expect(h.replayed).toEqual([]);
+
+      h.clock += 5_000;
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(h.replayed).toEqual([cmd(1)]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('a held op replays once its hold elapses', async () => {

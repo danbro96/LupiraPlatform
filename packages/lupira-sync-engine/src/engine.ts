@@ -40,6 +40,8 @@ export interface SyncEngine {
   /** Push, then pull every module; concurrent calls share one run. Failures land in `status`, never reject. */
   sync(): Promise<void>;
   push(): Promise<void>;
+  /** Resolves once the database is migrated and every module's index tables exist; reads should await it. */
+  ready(): Promise<void>;
   enqueue(ops: OpBase | readonly OpBase[], options?: EnqueueOptions): Promise<void>;
   discard(commandId: string): Promise<void>;
   retry(commandId: string): Promise<void>;
@@ -93,6 +95,10 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
       })),
 
     push: async () => pusher.drain(await kernel()),
+
+    ready: async () => {
+      await kernel();
+    },
 
     async enqueue(ops, { holdMs = 0 } = {}) {
       const k = await kernel();

@@ -4,7 +4,7 @@ import { classifyReplayError, type ReplayDecision } from '@danbro96/lupira-sync-
 import { getCursor } from './cursorStore.ts';
 import { clearServer, getDoc, putServer } from './docStore.ts';
 import { commit, moduleFor, refreshCounts, type ChangeSet, type Kernel } from './kernel.ts';
-import { deleteOp, markFailure, nextEligible, type Failure, type OutboxRow } from './outboxStore.ts';
+import { deleteOp, markFailure, nextDueAt, nextEligible, type Failure, type OutboxRow } from './outboxStore.ts';
 import { fold, recompute } from './recompute.ts';
 import type { Serial } from './serial.ts';
 import type { OpBase } from './types.ts';
@@ -16,11 +16,25 @@ export interface Pusher {
 }
 
 /** Single-flight: a drain requested mid-run queues exactly one rerun, so an op enqueued after the running drain's
- *  last check is not stranded until the next trigger. */
+ *  last check is not stranded until the next trigger. Each drain ends by arming one timer for the next held or
+ *  backed-off op, so delayed ops replay on time without an outside trigger. */
 export function createPusher(exchange: Serial): Pusher {
   let running: Promise<void> | null = null;
   let rerun = false;
   let paused = false;
+  let wake: ReturnType<typeof setTimeout> | null = null;
+
+  async function armWake(kernel: Kernel): Promise<void> {
+    if (wake) clearTimeout(wake);
+    wake = null;
+    if (paused) return;
+    const at = await nextDueAt(kernel.db, kernel.now());
+    if (at === null) return;
+    wake = setTimeout(() => {
+      wake = null;
+      drain(kernel).catch((e: unknown) => kernel.status.set({ lastError: e instanceof Error ? e.message : String(e) }));
+    }, at - kernel.now());
+  }
 
   async function runDrain(kernel: Kernel): Promise<void> {
     try {
@@ -33,6 +47,7 @@ export function createPusher(exchange: Serial): Pusher {
       }
     } finally {
       await refreshCounts(kernel);
+      await armWake(kernel);
     }
   }
 

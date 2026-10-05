@@ -39,6 +39,15 @@ export async function nextEligible(tx: Tx, now: number): Promise<OutboxRow | nul
   return row && { seq: row.seq, op: JSON.parse(row.op) as OpBase, attempts: row.attempts };
 }
 
+/** When the earliest held or backed-off op becomes due; null when nothing is waiting on time. */
+export async function nextDueAt(tx: Tx, now: number): Promise<number | null> {
+  const row = await tx.first<{ at: number | null }>(
+    "SELECT MIN(next_attempt_at) AS at FROM outbox WHERE status = 'pending' AND next_attempt_at > ?",
+    [now],
+  );
+  return row?.at ?? null;
+}
+
 export async function opsFor(tx: Tx, aggregate: string, id: string): Promise<OpBase[]> {
   const rows = await tx.all<{ op: string }>(
     'SELECT op FROM outbox WHERE aggregate = ? AND aggregate_id = ? ORDER BY seq', [aggregate, id]);
