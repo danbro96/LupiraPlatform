@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- Depends on `lupira-domain-maps` ^0.2.0.
+
 ## 0.1.1
 - Ships the `lupira-sync-maplibre` bin.
 

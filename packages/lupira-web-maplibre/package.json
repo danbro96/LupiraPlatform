@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-web-maplibre",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "maplibre-gl setup for the Lupira SPAs: worker + pmtiles wiring, basemap style loading, MiniMap.",
   "license": "MIT",
   "type": "module",
@@ -24,7 +24,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@danbro96/lupira-domain-maps": "^0.1.0",
+    "@danbro96/lupira-domain-maps": "^0.2.0",
     "@danbro96/lupira-tokens-map": "^0.1.0"
   },
   "peerDependencies": {
