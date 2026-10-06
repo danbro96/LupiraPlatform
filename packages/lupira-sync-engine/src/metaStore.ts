@@ -11,3 +11,7 @@ export async function getMeta(tx: Tx, key: string): Promise<string | null> {
 export async function setMeta(tx: Tx, key: string, value: string): Promise<void> {
   await tx.run('INSERT INTO meta (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value', [key, value]);
 }
+
+export async function deleteMeta(tx: Tx, key: string): Promise<void> {
+  await tx.run('DELETE FROM meta WHERE key = ?', [key]);
+}

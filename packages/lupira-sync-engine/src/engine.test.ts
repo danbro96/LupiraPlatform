@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { cmd, create, createHarness, HttpError, page, retitle, serverNote } from '../test/harness.ts';
+import { openNodeDb } from '@danbro96/lupira-expo-sqlite/node';
+import type { Db, Tx } from '@danbro96/lupira-expo-sqlite/types';
+import { cmd, create, createHarness, HttpError, page, retitle, serverNote, titleIndex } from '../test/harness.ts';
 
 describe('opening', () => {
   it('survives concurrent first use on a virgin database', async () => {
@@ -61,6 +63,48 @@ describe('reindex', () => {
     await engine.reindex('note');
 
     expect(await h.titles()).toEqual([{ id: 'a', title: 'A' }, { id: 'b', title: 'B' }]);
+  });
+
+  it('runs the index DDL on the main connection, not inside an exclusive transaction', async () => {
+    const db = openNodeDb();
+    const onMain: string[] = [];
+    const inExclusive: string[] = [];
+    const spied: Db = {
+      ...db,
+      exec: (sql) => {
+        onMain.push(sql);
+        return db.exec(sql);
+      },
+      exclusive: <T,>(fn: (tx: Tx) => Promise<T>) => db.exclusive((tx) => fn({
+        ...tx,
+        exec: (sql) => {
+          inExclusive.push(sql);
+          return tx.exec(sql);
+        },
+      })),
+    };
+    const engine = createHarness(spied).engine();
+    await engine.ready();
+    onMain.length = 0;
+
+    await engine.reindex('note');
+
+    expect(onMain).toEqual([expect.stringContaining('DROP TABLE IF EXISTS note_titles;\nCREATE TABLE note_titles')]);
+    expect(inExclusive).toEqual([]);
+  });
+
+  it('redoes a rebuild cut short before its rewrite commits on the next open', async () => {
+    const h = createHarness();
+    h.feeds.note.script.push(page('1', { changed: [serverNote('a', 'A')] }));
+    await h.engine().sync();
+    const crashing = h.modules();
+    crashing[0] = { ...crashing[0], index: { ...titleIndex(), write: async () => { throw new Error('crash'); } } };
+
+    await expect(h.engine({ modules: crashing }).reindex('note')).rejects.toThrow('crash');
+    expect(await h.titles()).toEqual([]);
+
+    await h.engine().ready();
+    expect(await h.titles()).toEqual([{ id: 'a', title: 'A' }]);
   });
 });
 

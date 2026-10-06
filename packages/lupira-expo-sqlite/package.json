@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-expo-sqlite",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "SQLite Db/Tx port for the Lupira Expo apps: expo-sqlite implementation, node:sqlite test double, migration runner.",
   "license": "MIT",
   "type": "module",
@@ -9,6 +9,10 @@
     "./types": {
       "types": "./dist/types.d.ts",
       "default": "./dist/types.js"
+    },
+    "./applySchema": {
+      "types": "./dist/applySchema.d.ts",
+      "default": "./dist/applySchema.js"
     },
     "./expoDb": {
       "types": "./dist/expoDb.d.ts",

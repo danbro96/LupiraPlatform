@@ -109,9 +109,9 @@ describe('serializeStatements', () => {
   });
 });
 
-describe('exclusive', () => {
-  const statements = () => handle.execAsync.mock.calls.map(([sql]) => sql as string);
+const statements = () => handle.execAsync.mock.calls.map(([sql]) => sql as string);
 
+describe('exclusive', () => {
   it('opens its own connection and takes the write lock before running', async () => {
     const db = await expoDb('t')();
     handle.execAsync.mockClear();
@@ -143,21 +143,21 @@ describe('exclusive', () => {
     await expect(db.exclusive(async () => { throw new Error('boom'); })).rejects.toThrow('boom');
   });
 
-  it('runs a migration step\'s DDL and user_version inside one transaction', async () => {
-    const db = await expoDb('t')();
-    handle.execAsync.mockClear();
-    await migrate(db, ['CREATE TABLE a (id TEXT);']);
-    expect(statements()).toEqual([
-      'PRAGMA busy_timeout = 30000; BEGIN IMMEDIATE',
-      'CREATE TABLE a (id TEXT);\nPRAGMA user_version = 1;',
-      'COMMIT',
-    ]);
-  });
-
   it('closes the connection when taking the lock fails', async () => {
     const db = await expoDb('t')();
     handle.execAsync.mockRejectedValueOnce(new Error('database is locked'));
     await expect(db.exclusive(async () => undefined)).rejects.toThrow('database is locked');
     expect(handle.closeAsync).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('migrate', () => {
+  it('runs a step\'s DDL and user_version in one transaction on the main connection', async () => {
+    const db = await expoDb('t')();
+    handle.execAsync.mockClear();
+    openDatabaseAsync.mockClear();
+    await migrate(db, ['CREATE TABLE a (id TEXT);']);
+    expect(openDatabaseAsync).not.toHaveBeenCalled();
+    expect(statements()).toEqual(['BEGIN IMMEDIATE;\nCREATE TABLE a (id TEXT);\nPRAGMA user_version = 1;\n;\nCOMMIT;']);
   });
 });

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { migrate } from './migrate.ts';
 import { openNodeDb } from './nodeDb.ts';
 
@@ -51,6 +51,15 @@ describe('migrate', () => {
     expect(await db.first('PRAGMA user_version')).toEqual({ user_version: 2 });
     await db.run('INSERT INTO items (id, title) VALUES (?, ?)', ['i', 'x']);
     expect(await db.first('SELECT done FROM items')).toEqual({ done: 0 });
+  });
+
+  it('runs each step on the main connection, not through exclusive', async () => {
+    const db = openNodeDb();
+    const exclusive = vi.spyOn(db, 'exclusive');
+    const exec = vi.spyOn(db, 'exec');
+    await migrate(db, LADDER.slice(0, 1));
+    expect(exclusive).not.toHaveBeenCalled();
+    expect(exec).toHaveBeenCalledWith(`BEGIN IMMEDIATE;\n${LADDER[0]}\nPRAGMA user_version = 1;\n;\nCOMMIT;`);
   });
 
   it('resumes from the recorded version', async () => {

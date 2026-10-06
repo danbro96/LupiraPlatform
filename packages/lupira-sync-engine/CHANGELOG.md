@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2
+
+- Index rebuilds (on a `version` change at open, and `reindex`) drop and create the module's tables through `applySchema` on the main connection, then rewrite the docs in an exclusive transaction; reads no longer fail with `no such table` after a rebuild.
+- A rebuild cut short between the schema change and the rewrite is redone on the next open.
+- Requires `@danbro96/lupira-expo-sqlite` ^0.4.1.
+
 ## 0.1.1
 
 - `expo/triggers`: `startSyncTriggers` takes `registerBackgroundTask` (default true); false removes the background task instead of registering it, for development builds where a fired job would start React before the dev launcher.

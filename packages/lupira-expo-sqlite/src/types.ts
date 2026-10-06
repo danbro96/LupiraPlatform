@@ -1,7 +1,7 @@
 /** The minimal database surface a mirror + sync engine are written against. Two implementations: expo-sqlite
  *  on the device and node:sqlite in the vitest harness — so the ENTIRE engine (transactions included) runs
- *  under tests with no native code. Every helper takes a Tx, never a Db: writes always happen inside
- *  `exclusive`, so no other async transaction can interleave with them. */
+ *  under tests with no native code. Every helper takes a Tx, never a Db: data writes always happen inside
+ *  `exclusive`, so no other async transaction can interleave with them; schema changes go through `applySchema`. */
 
 export type SqlValue = string | number | null;
 

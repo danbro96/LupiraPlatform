@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-sync-engine",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Generic offline kernel for the Lupira mobile apps: docs, outbox, cursors and meta over the Db port, driven by per-aggregate modules.",
   "license": "MIT",
   "type": "module",
@@ -21,7 +21,7 @@
     "@danbro96/lupira-sync-core": "^0.1.0"
   },
   "peerDependencies": {
-    "@danbro96/lupira-expo-sqlite": "^0.4.0",
+    "@danbro96/lupira-expo-sqlite": "^0.4.1",
     "@danbro96/lupira-http": "^0.2.0",
     "@react-native-community/netinfo": ">=12.0.1",
     "expo-background-task": ">=57.0.21",

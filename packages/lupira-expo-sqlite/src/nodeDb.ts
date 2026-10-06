@@ -19,11 +19,18 @@ export function openNodeDb(path = ':memory:'): Db {
   };
 
   let queue: Promise<unknown> = Promise.resolve();
+  const serialized = <T,>(fn: () => Promise<T>): Promise<T> => {
+    const next = queue.then(fn);
+    queue = next.catch(() => undefined);
+    return next;
+  };
 
   return {
     ...tx,
-    exclusive<T>(fn: (t: Tx) => Promise<T>): Promise<T> {
-      const next = queue.then(async () => {
+    // On the device the main connection's write lock waits for an open exclusive transaction.
+    exec: (sql) => serialized(async () => raw.exec(sql)),
+    exclusive: <T,>(fn: (t: Tx) => Promise<T>): Promise<T> =>
+      serialized(async () => {
         raw.exec('BEGIN IMMEDIATE');
         try {
           const result = await fn(tx);
@@ -33,9 +40,6 @@ export function openNodeDb(path = ':memory:'): Db {
           raw.exec('ROLLBACK');
           throw e;
         }
-      });
-      queue = next.catch(() => undefined);
-      return next;
-    },
+      }),
   };
 }

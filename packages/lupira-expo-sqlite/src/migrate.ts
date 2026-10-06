@@ -1,3 +1,4 @@
+import { applySchema } from './applySchema.ts';
 import type { Db } from './types.ts';
 
 // Single-flight per db handle: two startup paths migrating at once on a virgin database both read
@@ -20,6 +21,6 @@ async function runMigrate(db: Db, migrations: readonly string[]): Promise<void> 
   const from = row?.user_version ?? 0;
   for (let v = from; v < migrations.length; v++) {
     // PRAGMA can't be parameterized; user_version commits with the step's DDL or not at all.
-    await db.exclusive((tx) => tx.exec(`${migrations[v]}\nPRAGMA user_version = ${v + 1};`));
+    await applySchema(db, `${migrations[v]}\nPRAGMA user_version = ${v + 1};`);
   }
 }

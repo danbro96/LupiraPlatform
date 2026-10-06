@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1
+
+- `applySchema(db, sql)`: runs DDL in one `BEGIN IMMEDIATE` … `COMMIT` on the main connection, rolling back on failure, so reads on that connection always see the new schema.
+- `migrate`: each step runs through `applySchema` instead of `exclusive`; a fresh install no longer fails with `no such table` when the main connection held an open read.
+- `node`: `Db.exec` waits for an open `exclusive` transaction, as the device's main connection waits for the write lock.
+
 ## 0.4.0
 
 - `migrate`: each step's DDL and `PRAGMA user_version` run in one exclusive transaction and commit together; a failing step leaves no partial schema.

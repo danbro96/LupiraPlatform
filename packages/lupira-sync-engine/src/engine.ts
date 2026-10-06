@@ -135,7 +135,7 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
 
     async reindex(aggregate) {
       const k = await kernel();
-      await commit(k, 'local', (tx, changes) => rebuildIndex(tx, moduleFor(k, aggregate), changes));
+      await rebuildIndex(k, moduleFor(k, aggregate));
     },
 
     async wipe() {
