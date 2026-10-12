@@ -18,6 +18,12 @@ export interface PlaceCandidate {
   viaContact?: { contactId: string; status: ResidencyStatus };
   residents?: { contactId: string; status: ResidencyStatus }[];
   point?: GeoPoint | null;
+  /** Your own events here; the category pair counts only events of the kind being placed. */
+  usage?: { count: number; lastDay: string; categoryCount?: number; categoryLastDay?: string };
+  placeCategory?: string;
+  /** Who you've been here with, by shared events. */
+  companions?: { contactId: string; count: number }[];
+  isHome?: boolean;
 }
 
 export interface PlaceRankContext {
@@ -28,12 +34,17 @@ export interface PlaceRankContext {
   contactScores?: ReadonlyMap<string, number>;
   /** Where the event probably is — the day's other events, or you. */
   origin?: GeoPoint | null;
+  /** The app's policy for how well a place category suits the event being placed; weights category usage. */
+  categoryAffinity?: (placeCategory: string | undefined, isHome: boolean) => number;
+  /** 0..1 — how far past use is scored by recency alone rather than frequency. */
+  recencyBias?: number;
 }
 
 const DAY_MS = 86_400_000;
 const HOTSPOT_HALF_LIFE_DAYS = 180;
 const HOTSPOT_FULL_DAYS = 30;
 const HOTSPOT_MAX = 1.5;
+const COMPANION_FULL = 10;
 const ATTENDEE_HOME_BOOST = 3;
 const PROXIMITY_WEIGHT = 0.3;
 /** A former/future address found by a contact's name: still findable, but below any real match. */
@@ -59,6 +70,10 @@ export function mergeCandidates(list: readonly PlaceCandidate[]): PlaceCandidate
       viaContact: bestVia(prev.viaContact, c.viaContact),
       residents: residents.length ? residents : undefined,
       point: prev.point ?? c.point,
+      usage: prev.usage ?? c.usage,
+      placeCategory: prev.placeCategory ?? c.placeCategory,
+      companions: prev.companions ?? c.companions,
+      isHome: prev.isHome || c.isHome,
     });
   }
   return [...byId.values()];
@@ -86,12 +101,24 @@ export function affinity(c: PlaceCandidate, ctx: PlaceRankContext): number {
     const scoreOf = (id: string) => (top > 0 ? (ctx.contactScores?.get(id) ?? 0) / top : 0);
     a += 0.5 + Math.max(...active.map((r) => scoreOf(r.contactId)));
   }
-  if (c.hotspot) {
-    const ageDays = Math.max(0, (ctx.now.getTime() - Date.parse(c.hotspot.lastDay)) / DAY_MS) || 0;
-    const frequency = Math.min(HOTSPOT_MAX, Math.log1p(c.hotspot.activeDays) / Math.log1p(HOTSPOT_FULL_DAYS));
-    a += frequency * 0.5 ** (ageDays / HOTSPOT_HALF_LIFE_DAYS);
+  if (c.hotspot) a += decayedUse(c.hotspot.activeDays, c.hotspot.lastDay, ctx);
+  if (c.usage) {
+    a += decayedUse(c.usage.count, c.usage.lastDay, ctx);
+    if (c.usage.categoryCount) {
+      const weight = ctx.categoryAffinity?.(c.placeCategory, c.isHome ?? false) ?? 1;
+      a += weight * decayedUse(c.usage.categoryCount, c.usage.categoryLastDay ?? c.usage.lastDay, ctx);
+    }
   }
+  const together = (c.companions ?? []).filter((x) => ctx.attendeeIds.has(x.contactId));
+  if (together.length > 0) a += Math.min(1, together.reduce((n, x) => n + Math.log1p(x.count), 0) / Math.log1p(COMPANION_FULL));
   return a;
+}
+
+function decayedUse(count: number, lastDay: string, ctx: PlaceRankContext): number {
+  const ageDays = Math.max(0, (ctx.now.getTime() - Date.parse(lastDay)) / DAY_MS) || 0;
+  const frequency = Math.min(HOTSPOT_MAX, Math.log1p(count) / Math.log1p(HOTSPOT_FULL_DAYS));
+  const bias = Math.min(1, Math.max(0, ctx.recencyBias ?? 0));
+  return ((1 - bias) * frequency + bias) * 0.5 ** (ageDays / HOTSPOT_HALF_LIFE_DAYS);
 }
 
 export function contextBoost(c: PlaceCandidate, ctx: PlaceRankContext): number {

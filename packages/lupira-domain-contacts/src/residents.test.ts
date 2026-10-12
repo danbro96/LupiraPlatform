@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addressMeta, addressTypeLabel, otherResidentsLine, parentsHomes, residentsByPlace, residentsLine } from './residents.ts';
+import { addressMeta, addressTypeLabel, householdHomes, otherResidentsLine, parentsHomes, residentsByPlace, residentsLine } from './residents.ts';
 
 const today = new Date(2026, 8, 30);
 
@@ -87,5 +87,47 @@ describe('parentsHomes', () => {
       { contactId: 'mum', displayName: 'Mum', placeId: 'coast', addressType: 'Home', label: 'Värmdö' },
     ], today);
     expect(homes.map((h) => h.label)).toEqual(["Parents' home · Värmdö", "Dad's home · Ljungby"]);
+  });
+});
+
+describe('householdHomes', () => {
+  const relations = [
+    { contactId: 'anna', displayName: 'Anna', kind: 'Spouse' },
+    { contactId: 'mum', displayName: 'Mum', kind: 'Parent' },
+    { contactId: 'ex', displayName: 'Ex', kind: 'Partner', ended: true },
+    { contactId: 'bo', displayName: 'Bo', kind: 'Friend' },
+    { contactId: 'kid', displayName: 'Kid', kind: 'Child' },
+  ];
+
+  it('groups close family and housemates by their current home', () => {
+    const homes = householdHomes('me', relations, [
+      { contactId: 'me', displayName: 'Me', placeId: 'villa', addressType: 'Home' },
+      { contactId: 'anna', displayName: 'Anna', placeId: 'villa', addressType: 'Home' },
+      { contactId: 'lodger', displayName: 'Lodger', placeId: 'villa', addressType: 'Home' },
+      { contactId: 'mum', displayName: 'Mum', placeId: 'flat', addressType: 'Home' },
+      { contactId: 'kid', displayName: 'Kid', placeId: 'dorm', addressType: 'Home', movedIn: { year: 2024 } },
+    ], today);
+    expect(homes).toEqual([
+      { placeId: 'villa', contacts: [
+        { contactId: 'anna', displayName: 'Anna', relation: 'Spouse' },
+        { contactId: 'lodger', displayName: 'Lodger', relation: 'Household' },
+      ] },
+      { placeId: 'flat', contacts: [{ contactId: 'mum', displayName: 'Mum', relation: 'Parent' }] },
+      { placeId: 'dorm', contacts: [{ contactId: 'kid', displayName: 'Kid', relation: 'Child' }] },
+    ]);
+  });
+
+  it('ignores ended relations, other kinds, and past, future or vacation residencies', () => {
+    const homes = householdHomes('me', relations, [
+      { contactId: 'me', displayName: 'Me', placeId: 'villa', addressType: 'Home' },
+      { contactId: 'ex', displayName: 'Ex', placeId: 'exs', addressType: 'Home' },
+      { contactId: 'bo', displayName: 'Bo', placeId: 'bos', addressType: 'Home' },
+      { contactId: 'mum', displayName: 'Mum', placeId: 'cabin', addressType: 'Vacation' },
+      { contactId: 'mum', displayName: 'Mum', placeId: 'old', addressType: 'Home', movedOut: { year: 2015 } },
+      { contactId: 'old-lodger', displayName: 'Old lodger', placeId: 'villa', addressType: 'Home', movedOut: { year: 2020 } },
+      { contactId: 'me', displayName: 'Me', placeId: 'next', addressType: 'Home', movedIn: { year: 2027 } },
+      { contactId: 'kid', displayName: 'Kid', placeId: 'next', addressType: 'Home' },
+    ], today);
+    expect(homes).toEqual([{ placeId: 'next', contacts: [{ contactId: 'kid', displayName: 'Kid', relation: 'Child' }] }]);
   });
 });

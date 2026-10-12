@@ -5,6 +5,7 @@ export default pure({
   react: true,
   allowModules: [
     '@danbro96/lupira-domain-maps',
+    '@danbro96/lupira-domain-places',
     '@danbro96/lupira-tokens-map',
     '@mui/material',
     'maplibre-gl',

@@ -45,27 +45,19 @@ export function toLocatedPlaces<P extends Located>(
 
 export const GEOCODER_UNAVAILABLE = 'The geocoder is unavailable — no place was created.';
 
-/** How a picked address-search hit becomes a place. An OSM-backed hit resolves server-side (deduped against
- *  existing places; `query` must be the exact search the hits came from); any other is created at its
- *  coordinates under the name that was typed. `categories` = the API's known place categories. */
+export type PlaceRequest =
+  | { kind: 'fromGeocode'; osmType: string; osmId: number; name?: string }
+  | { kind: 'fromPin'; name?: string; lat: number; lon: number };
+
+/** How a picked address-search hit becomes a place: an OSM-backed hit resolves server-side (deduped against existing
+ *  places), any other is pinned at its coordinates. A blank name leaves naming to the server. */
 export function placeRequestFromHit(
-  hit: { displayName: string; latitude: number; longitude: number; category?: string | null; osmType?: string | null; osmId?: number | null },
-  typedName: string,
-  categories: readonly string[],
-):
-  | { kind: 'fromGeocode'; body: { query: string; osmType: string; osmId: number } }
-  | { kind: 'create'; body: { name: string; latitude: number; longitude: number; formattedAddress: string; category?: string } } {
-  if (hit.osmType && hit.osmId != null) return { kind: 'fromGeocode', body: { query: typedName, osmType: hit.osmType, osmId: hit.osmId } };
-  return {
-    kind: 'create',
-    body: {
-      name: typedName || hit.displayName,
-      latitude: hit.latitude,
-      longitude: hit.longitude,
-      formattedAddress: hit.displayName,
-      ...(hit.category && categories.includes(hit.category) ? { category: hit.category } : {}),
-    },
-  };
+  hit: { latitude: number; longitude: number; osmType?: string | null; osmId?: number | null },
+  name?: string | null,
+): PlaceRequest {
+  const named = name?.trim() ? { name: name.trim() } : {};
+  if (hit.osmType && hit.osmId != null) return { kind: 'fromGeocode', osmType: hit.osmType, osmId: hit.osmId, ...named };
+  return { kind: 'fromPin', ...named, lat: hit.latitude, lon: hit.longitude };
 }
 
 /** A place tile's heading: the caller's label, the place's own name, a placeholder while it loads. */

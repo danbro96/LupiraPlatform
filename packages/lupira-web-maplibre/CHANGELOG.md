@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0
+
+- `MapPinDialog` (default export): MUI dialog with a basemap where a click drops a draggable marker. Props `open`, `start` `{ lat, lon, zoom? }`, `geoBase`, `onCancel`, `onConfirm(point)`, optional `title`, `children` (shown above the map) and `confirmDisabled`.
+- Depends on `lupira-domain-places` ^0.2.0.
+
 ## 0.1.2
 
 - Depends on `lupira-domain-maps` ^0.2.0.

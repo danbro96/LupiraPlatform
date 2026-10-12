@@ -5,6 +5,9 @@
       "path": "../lupira-domain-maps"
     },
     {
+      "path": "../lupira-domain-places"
+    },
+    {
       "path": "../lupira-tokens-map"
     }
   ],

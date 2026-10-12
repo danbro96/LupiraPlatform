@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatCoords, osmUrl } from './places.ts';
+import { formatCoords, osmUrl, placeRequestFromHit } from './places.ts';
 
 describe('osmUrl', () => {
   it('builds a map link from numeric coords', () => {
@@ -52,5 +52,21 @@ describe('toLocatedPlaces', () => {
     ]);
     expect([...map.keys()]).toEqual(['merged']);
     expect(map.get('merged')?.id).toBe('survivor');
+  });
+});
+
+describe('placeRequestFromHit', () => {
+  const at = { latitude: 59.33, longitude: 18.07 };
+
+  it('resolves an OSM-backed hit server-side, without the search query', () => {
+    expect(placeRequestFromHit({ ...at, osmType: 'way', osmId: 42 }, ' Café Saturnus ')).toEqual({
+      kind: 'fromGeocode', osmType: 'way', osmId: 42, name: 'Café Saturnus',
+    });
+    expect(placeRequestFromHit({ ...at, osmType: 'node', osmId: 0 })).toEqual({ kind: 'fromGeocode', osmType: 'node', osmId: 0 });
+  });
+
+  it('pins any other hit at its coordinates, leaving a blank name to the server', () => {
+    expect(placeRequestFromHit({ ...at, osmType: null, osmId: null }, 'Stugan')).toEqual({ kind: 'fromPin', name: 'Stugan', lat: 59.33, lon: 18.07 });
+    expect(placeRequestFromHit(at, '  ')).toEqual({ kind: 'fromPin', lat: 59.33, lon: 18.07 });
   });
 });

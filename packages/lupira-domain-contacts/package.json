@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-domain-contacts",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Pure Lupira contact rules: names, residents, fuzzy dates.",
   "license": "MIT",
   "type": "module",

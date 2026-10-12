@@ -118,6 +118,46 @@ export function parentsHomes(
   }));
 }
 
+const CLOSE_FAMILY = new Set(['Spouse', 'Partner', 'Parent', 'Child', 'Sibling']);
+
+export interface HouseholdHome {
+  placeId: string;
+  /** `relation`: the kind as seen from the contact, or "Household" for someone who only shares their home. */
+  contacts: { contactId: string; displayName: string; relation: string }[];
+}
+
+/** Current Home places of a contact's close family and of anyone sharing their current Home, one entry per place;
+ *  ended relations, past/future and vacation residencies don't count (the contact circles' household rule). */
+export function householdHomes(
+  contactId: string,
+  relations: readonly { contactId: string; displayName: string; kind: string; ended?: boolean | null }[],
+  residencies: readonly ContactAddressRow[],
+  today: Date = new Date(),
+): HouseholdHome[] {
+  const current = residencies.filter((r) => r.addressType === 'Home' && withResidency(r, today).status === 'active');
+  const ownHomes = new Set(current.filter((r) => r.contactId === contactId).map((r) => r.placeId));
+  const members = new Map<string, { displayName: string; relation: string }>();
+  for (const r of relations) {
+    if (!r.ended && CLOSE_FAMILY.has(r.kind) && r.contactId !== contactId && !members.has(r.contactId)) {
+      members.set(r.contactId, { displayName: r.displayName, relation: r.kind });
+    }
+  }
+  for (const r of current) {
+    if (ownHomes.has(r.placeId) && r.contactId !== contactId && !members.has(r.contactId)) {
+      members.set(r.contactId, { displayName: r.displayName, relation: 'Household' });
+    }
+  }
+  const byPlace = new Map<string, HouseholdHome['contacts']>();
+  for (const r of current) {
+    const member = members.get(r.contactId);
+    if (!member) continue;
+    const there = byPlace.get(r.placeId) ?? [];
+    if (!there.some((c) => c.contactId === r.contactId)) there.push({ contactId: r.contactId, ...member });
+    byPlace.set(r.placeId, there);
+  }
+  return [...byPlace].map(([placeId, contacts]) => ({ placeId, contacts }));
+}
+
 /** A contact's addresses, current first-class and past/future apart; addresses with no place are dropped. */
 export function splitAddresses<T extends { placeId?: string | null; movedIn?: FuzzyDate | null; movedOut?: FuzzyDate | null }>(
   addresses: readonly T[], today: Date = new Date(),
