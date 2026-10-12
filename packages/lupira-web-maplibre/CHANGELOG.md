@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+
+- `MapPinDialog`: optional `initialPin` (marker placed on open, map centred on it at street zoom or closer) and `onPinChange(point | null)` (fired on open, on placing and after each drag).
+- `pinView`: the dialog's opening camera from `start` and an optional pin.
+
 ## 0.2.0
 
 - `MapPinDialog` (default export): MUI dialog with a basemap where a click drops a draggable marker. Props `open`, `start` `{ lat, lon, zoom? }`, `geoBase`, `onCancel`, `onConfirm(point)`, optional `title`, `children` (shown above the map) and `confirmDisabled`.
