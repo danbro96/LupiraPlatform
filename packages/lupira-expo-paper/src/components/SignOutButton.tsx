@@ -1,14 +1,15 @@
-import { View } from 'react-native';
-import { spacing } from '@danbro96/lupira-tokens-core/spacing';
-import { Button } from './Button.tsx';
+import { List } from 'react-native-paper';
+import { ICONS } from '../icons.ts';
+import { useColors } from '../theme/useColors.ts';
 import { useConfirm } from './ConfirmDialog.tsx';
 
-/** The sign-out row of a Settings screen's Account section: a destructive button behind a confirm dialog. */
+/** The sign-out row of a Settings screen's Account section: a danger-tinted row behind a confirm dialog. */
 export function SignOutButton({ onSignOut, label = 'Sign out', message = 'You will need to sign in again.' }: {
   onSignOut: () => void;
   label?: string;
   message?: string;
 }) {
+  const c = useColors();
   const confirm = useConfirm();
 
   async function press() {
@@ -17,8 +18,12 @@ export function SignOutButton({ onSignOut, label = 'Sign out', message = 'You wi
   }
 
   return (
-    <View style={{ paddingHorizontal: spacing.lg, paddingVertical: spacing.sm }}>
-      <Button title={label} variant="destructive" onPress={() => void press()} />
-    </View>
+    <List.Item
+      title={label}
+      titleStyle={{ color: c.danger }}
+      left={props => <List.Icon {...props} icon={ICONS.signOut} color={c.danger} />}
+      onPress={() => void press()}
+      accessibilityRole="button"
+    />
   );
 }

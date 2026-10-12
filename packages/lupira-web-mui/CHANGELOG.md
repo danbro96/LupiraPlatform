@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- Accepts `@danbro96/lupira-tokens-core` ^0.3.0.
+
 ## 0.2.0
 
 - `icons`: `AirportIcon`, `BarIcon`, `BusStopIcon`, `CafeIcon`, `ChurchIcon`, `GovernmentIcon`, `GroceryIcon`, `GymIcon`, `HospitalIcon`, `LandmarkIcon`, `ParkIcon`, `PharmacyIcon`, `SchoolIcon`, `StationIcon`, `StoreIcon`.

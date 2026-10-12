@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.0
+- `IdentityHeader` is a compact row: a 40dp avatar beside the name and subtitle.
+- `SignOutButton` is a settings row: "Sign out" with a logout icon, danger-tinted, still behind the confirm.
+- `StatusBanner`: the connection/sync strip over a `StatusBannerState` (structurally `lupira-sync-engine`'s `BannerState`), with optional `onPress` and `progress`; colours from the theme's `BannerPalette`.
+- `SyncStatusView`: the body of a sync screen over `SyncViewStatus` and `ParkedChange` (structurally `SyncStatus` and `ParkedOp`): status line with Sync now, progress, parked changes with Retry / Discard / Details, optional Retry all, queued count.
+- `status`: `offlineBannerState(online)` for apps without sync, `syncStatusLine`, `changeCount`, and the structural types.
+- `createPaperThemes` puts `lightBanner`/`darkBanner` on the theme under the app palette, so an app's own `banner*`/`onStatus` keys win.
+- `ICONS`/`configureIcons`: `alert`, `chevronRight`, `cloudOff`, `signOut`, `sync` added.
+- Depends on `@danbro96/lupira-tokens-core` ^0.3.0.
+
 ## 0.6.0
 - `AccountButton` opens Settings directly: it takes only `name`, with no menu and no sign-out.
 - `SignOutButton`: the confirmed sign-out row for a Settings screen's Account section.

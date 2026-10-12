@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-web-mui",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "MUI kit shared by the Lupira SPAs: theme factory, icon vocabulary, snackbar, centered message.",
   "license": "MIT",
   "type": "module",
@@ -18,7 +18,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@danbro96/lupira-tokens-core": "^0.2.0"
+    "@danbro96/lupira-tokens-core": "^0.2.0 || ^0.3.0"
   },
   "peerDependencies": {
     "@mui/icons-material": "^9.4.0",

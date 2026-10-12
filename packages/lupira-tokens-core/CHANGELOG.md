@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+- `color`: `BannerPalette`, `lightBanner`, `darkBanner` (the connection/sync status strip: `bannerOffline`, `bannerUnreachable`, `bannerSyncing`, `onStatus`).
+
 ## 0.2.0
 
 - `color`: `SCRIM` (photo overlays and sheet backdrops).

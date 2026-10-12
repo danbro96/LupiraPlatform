@@ -45,6 +45,28 @@ export const darkColors: Palette = {
   brand: '#E76F51',
 };
 
+/** The connection/sync status strip. Its tones are dark in both schemes, so `onStatus` stays light. */
+export interface BannerPalette {
+  bannerOffline: string;
+  bannerUnreachable: string;
+  bannerSyncing: string;
+  onStatus: string;
+}
+
+export const lightBanner: BannerPalette = {
+  bannerOffline: '#5b4b18',
+  bannerUnreachable: '#7a1f1f',
+  bannerSyncing: '#0f766e',
+  onStatus: '#ffffff',
+};
+
+export const darkBanner: BannerPalette = {
+  bannerOffline: '#5b4b18',
+  bannerUnreachable: '#7a1f1f',
+  bannerSyncing: '#115e59',
+  onStatus: '#ffffff',
+};
+
 /** Over photos and behind sheets. The same in both schemes: what lies underneath sets the contrast. */
 export const SCRIM = {
   backdrop: 'rgba(0, 0, 0, 0.4)',

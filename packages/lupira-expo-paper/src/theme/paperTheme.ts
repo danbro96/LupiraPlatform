@@ -1,7 +1,7 @@
 import { MD3DarkTheme, MD3LightTheme, adaptNavigationTheme } from 'react-native-paper';
 import { DarkTheme as NavDarkBase, DefaultTheme as NavLightBase } from '@react-navigation/native';
 import type { Theme } from '@react-navigation/native';
-import type { Palette } from '@danbro96/lupira-tokens-core/color';
+import { darkBanner, lightBanner, type Palette } from '@danbro96/lupira-tokens-core/color';
 import { radii } from '@danbro96/lupira-tokens-core/spacing';
 
 // The whole palette rides on the theme: MD3 gets its own slot names, and the app's vocabulary
@@ -27,8 +27,8 @@ function md3Colors<P extends Palette>(p: P) {
 }
 
 export function createPaperThemes<P extends Palette>(lightColors: P, darkColors: P) {
-  const paperLight = { ...MD3LightTheme, roundness: radii.sm, colors: { ...MD3LightTheme.colors, ...md3Colors(lightColors) } };
-  const paperDark = { ...MD3DarkTheme, roundness: radii.sm, colors: { ...MD3DarkTheme.colors, ...md3Colors(darkColors) } };
+  const paperLight = { ...MD3LightTheme, roundness: radii.sm, colors: { ...MD3LightTheme.colors, ...lightBanner, ...md3Colors(lightColors) } };
+  const paperDark = { ...MD3DarkTheme, roundness: radii.sm, colors: { ...MD3DarkTheme.colors, ...darkBanner, ...md3Colors(darkColors) } };
   const adapted = adaptNavigationTheme({
     reactNavigationLight: NavLightBase,
     reactNavigationDark: NavDarkBase,

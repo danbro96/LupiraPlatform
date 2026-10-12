@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.3
+- Accepts `@danbro96/lupira-expo-paper` ^0.7.0 and `@danbro96/lupira-tokens-core` ^0.3.0.
+
 ## 0.2.2
 - Accepts `@danbro96/lupira-expo-paper` ^0.6.0.
 - Peer `expo-constants` relaxed to >=57.0.19, so apps on that patch keep their native fingerprint.
