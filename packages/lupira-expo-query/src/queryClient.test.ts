@@ -26,6 +26,18 @@ describe('createAppQueryClient', () => {
     expect(persisted(['places', 'pending'])).toBe(false);
   });
 
+  it('never persists data that JSON would not restore as-is', () => {
+    queryClient.setQueryData(['places', 'json'], { ids: ['a'], at: { lat: 1, lon: null }, gone: undefined });
+    queryClient.setQueryData(['places', 'map'], new Map([['a', 1]]));
+    queryClient.setQueryData(['places', 'nested-set'], [{ ids: new Set(['a']) }]);
+    queryClient.setQueryData(['places', 'date'], { at: new Date(0) });
+
+    expect(persisted(['places', 'json'])).toBe(true);
+    expect(persisted(['places', 'map'])).toBe(false);
+    expect(persisted(['places', 'nested-set'])).toBe(false);
+    expect(persisted(['places', 'date'])).toBe(false);
+  });
+
   it('keeps queries in memory at least as long as the persisted copy lives', () => {
     expect(persistOptions).toMatchObject({ maxAge: 7 * 24 * 60 * 60_000, buster: '1.2.3' });
     expect(queryClient.getDefaultOptions().queries?.gcTime).toBe(persistOptions.maxAge);

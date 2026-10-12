@@ -19,6 +19,15 @@ export interface AppQueryClient {
   persistOptions: PersistQueryClientProviderProps['persistOptions'];
 }
 
+/** The persister writes JSON: a Map, Set or Date would come back as a different shape that breaks its reader. */
+export function isPlainJson(value: unknown): boolean {
+  if (value === null || ['string', 'number', 'boolean', 'undefined'].includes(typeof value)) return true;
+  if (Array.isArray(value)) return value.every(isPlainJson);
+  if (typeof value !== 'object') return false;
+  const proto = Object.getPrototypeOf(value);
+  return (proto === Object.prototype || proto === null) && Object.values(value).every(isPlainJson);
+}
+
 export function createAppQueryClient({ persistRoots, buster, maxAgeMs = WEEK_MS }: AppQueryClientOptions): AppQueryClient {
   const roots = new Set(persistRoots);
   return {
@@ -29,7 +38,8 @@ export function createAppQueryClient({ persistRoots, buster, maxAgeMs = WEEK_MS 
       maxAge: maxAgeMs,
       buster,
       dehydrateOptions: {
-        shouldDehydrateQuery: (query) => defaultShouldDehydrateQuery(query) && roots.has(String(query.queryKey[0])),
+        shouldDehydrateQuery: (query) =>
+          defaultShouldDehydrateQuery(query) && roots.has(String(query.queryKey[0])) && isPlainJson(query.state.data),
       },
     },
   };
