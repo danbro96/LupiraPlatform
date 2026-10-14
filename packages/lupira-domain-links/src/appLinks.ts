@@ -21,7 +21,7 @@ export interface DayRange {
 }
 
 export interface AppLinks {
-  calItemUrl(itemId: string): string;
+  calItemUrl(itemId: string, occurrence?: string): string;
   calContactUrl(contactId: string): string;
   mapsAtUrl(at: MapsAt): string;
   mapsRangeUrl(range: DayRange & { layers?: readonly string[] }): string;
@@ -41,7 +41,8 @@ const layersParam = (layers: readonly string[] | undefined) =>
 export function webLinks(hosts: AppHosts): AppLinks {
   const base = (app: LupiraApp) => `${hosts[app].replace(/\/+$/, '')}/`;
   return {
-    calItemUrl: (itemId) => `${base('cal')}?item=${enc(itemId)}`,
+    calItemUrl: (itemId, occurrence) =>
+      `${base('cal')}?item=${enc(itemId)}${occurrence ? `&occ=${enc(occurrence)}` : ''}`,
     calContactUrl: (contactId) => `${base('cal')}contacts/${enc(contactId)}`,
     mapsAtUrl: ({ lon, lat, layers }) => `${base('maps')}?at=${lon},${lat}${layersParam(layers)}`,
     mapsRangeUrl: ({ from, to, layers }) => `${base('maps')}?from=${enc(from)}&to=${enc(to)}${layersParam(layers)}`,
@@ -58,7 +59,8 @@ export function webLinks(hosts: AppHosts): AppLinks {
 export function appLinks(schemes: AppHosts = APP_SCHEMES): AppLinks {
   const base = (app: LupiraApp) => `${schemes[app]}://`;
   return {
-    calItemUrl: (itemId) => `${base('cal')}item/${enc(itemId)}`,
+    calItemUrl: (itemId, occurrence) =>
+      `${base('cal')}item/${enc(itemId)}${occurrence ? `?occ=${enc(occurrence)}` : ''}`,
     calContactUrl: (contactId) => `${base('cal')}contact/${enc(contactId)}`,
     mapsAtUrl: ({ lon, lat, layers }) => `${base('maps')}at/${lon},${lat}${layersParam(layers).replace('&', '?')}`,
     mapsRangeUrl: ({ from, to, layers }) => `${base('maps')}?from=${enc(from)}&to=${enc(to)}${layersParam(layers)}`,

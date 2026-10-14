@@ -14,6 +14,10 @@ describe('webLinks', () => {
     expect(web.calContactUrl('c1')).toBe('https://cal.lupira.com/contacts/c1');
   });
 
+  it('opens one occurrence of a calendar item', () => {
+    expect(web.calItemUrl('i1', '2026-10-14T08:00:00Z')).toBe('https://cal.lupira.com/?item=i1&occ=2026-10-14T08%3A00%3A00Z');
+  });
+
   it('centres the map on a point, with or without layers', () => {
     expect(web.mapsAtUrl({ lon: 13.1, lat: 60.1 })).toBe('https://maps.lupira.com/?at=13.1,60.1');
     expect(web.mapsAtUrl({ lon: 13.1, lat: 60.1, layers: ['photos'] })).toBe('https://maps.lupira.com/?at=13.1,60.1&layers=photos');
@@ -58,6 +62,10 @@ describe('appLinks', () => {
     expect(app.mapsAtUrl({ lon: 13.1, lat: 60.1, layers: ['photos'] })).toBe('lupiramaps://at/13.1,60.1?layers=photos');
     expect(app.photosEventUrl('e1', 'p1')).toBe('lupiraphotos://event/e1?photo=p1');
     expect(app.photosRangeUrl({ from: '2026-10-04', to: '2026-10-04' })).toBe('lupiraphotos://?from=2026-10-04&to=2026-10-04');
+  });
+
+  it('opens one occurrence of a calendar item', () => {
+    expect(app.calItemUrl('i1', '2026-10-14T00:00:00Z')).toBe('lupiracalendar://item/i1?occ=2026-10-14T00%3A00%3A00Z');
   });
 
   it('opens a task by its deep-link path', () => {
