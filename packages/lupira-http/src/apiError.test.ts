@@ -14,14 +14,25 @@ describe('problemMessage', () => {
 });
 
 describe('ApiError.fromBody', () => {
-  it('parses title and traceId from a problem document', () => {
-    const e = ApiError.fromBody(422, '{"title":"Validation failed","detail":"Name is required","traceId":"00-abc-01"}', 'x');
-    expect(e).toMatchObject({ status: 422, message: 'Name is required', title: 'Validation failed', traceId: '00-abc-01' });
+  it('parses type, title and traceId from a problem document', () => {
+    const e = ApiError.fromBody(
+      422,
+      '{"type":"https://example.test/problems/name","title":"Validation failed","detail":"Name is required","traceId":"00-abc-01"}',
+      'x',
+    );
+    expect(e).toMatchObject({
+      status: 422,
+      message: 'Name is required',
+      type: 'https://example.test/problems/name',
+      title: 'Validation failed',
+      traceId: '00-abc-01',
+    });
   });
 
-  it('leaves title and traceId unset for a non-problem body', () => {
-    for (const body of ['upstream timeout', '', '"just a string"', '{"title":42}']) {
+  it('leaves type, title and traceId unset for a non-problem body', () => {
+    for (const body of ['upstream timeout', '', '"just a string"', '{"title":42,"type":7}']) {
       const e = ApiError.fromBody(502, body, 'HTTP 502');
+      expect(e.type).toBeUndefined();
       expect(e.title).toBeUndefined();
       expect(e.traceId).toBeUndefined();
     }

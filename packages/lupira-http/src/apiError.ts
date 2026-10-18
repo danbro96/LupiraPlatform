@@ -1,21 +1,23 @@
 /** The one error the clients' data layers throw. Status 0 = transport failure/timeout (no HTTP response). */
 export class ApiError extends Error {
   readonly status: number;
+  readonly type?: string;
   readonly title?: string;
   readonly traceId?: string;
 
-  constructor(status: number, message: string, problem?: { title?: string; traceId?: string }) {
+  constructor(status: number, message: string, problem?: { type?: string; title?: string; traceId?: string }) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.type = problem?.type;
     this.title = problem?.title;
     this.traceId = problem?.traceId;
   }
 
-  /** From an error response body: problem+json `title`/`traceId` when present; the message per `problemMessage`. */
+  /** From an error response body: problem+json `type`/`title`/`traceId` when present; the message per `problemMessage`. */
   static fromBody(status: number, body: string, fallback: string): ApiError {
-    const { title, traceId } = parseProblem(body);
-    return new ApiError(status, problemMessage(body, fallback), { title, traceId });
+    const { type, title, traceId } = parseProblem(body);
+    return new ApiError(status, problemMessage(body, fallback), { type, title, traceId });
   }
 }
 
@@ -30,7 +32,7 @@ export function problemMessage(body: string, fallback: string): string {
   return detail ?? title ?? (body || fallback);
 }
 
-function parseProblem(body: string): { detail?: string; title?: string; traceId?: string } {
+function parseProblem(body: string): { type?: string; detail?: string; title?: string; traceId?: string } {
   let problem: unknown;
   try {
     problem = JSON.parse(body);
@@ -42,7 +44,7 @@ function parseProblem(body: string): { detail?: string; title?: string; traceId?
     const value = (problem as Record<string, unknown>)[name];
     return typeof value === 'string' && value ? value : undefined;
   };
-  return { detail: field('detail'), title: field('title'), traceId: field('traceId') };
+  return { type: field('type'), detail: field('detail'), title: field('title'), traceId: field('traceId') };
 }
 
 /** Shown when a request never reached the server. */

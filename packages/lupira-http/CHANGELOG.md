@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- `apiError`: `ApiError` gains `type` (the problem+json `type` URI), set by `ApiError.fromBody`, so a caller can branch on a typed failure.
+
 ## 0.2.0
 
 - **Breaking** `mutator`: `createBearerMutator` always resolves to the parsed body (204 → `undefined`); the `envelope` option and `ApiEnvelope` are removed.
