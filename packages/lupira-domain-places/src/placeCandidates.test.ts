@@ -25,12 +25,6 @@ describe('pickPlaces', () => {
     expect(places.map((p) => p.placeId)).toEqual(['annas', 'old']);
     expect(places[1].otherLine).toBe('Anna Svensson lived here ?–2019');
   });
-
-  it('places a geocoder hit at a resident’s address within 30 m', () => {
-    const { residentsNear } = pickPlaces(base);
-    expect(residentsNear({ lat: 59.33005, lon: 18.07 })).toBe('Anna Svensson lives here');
-    expect(residentsNear({ lat: 59.34, lon: 18.07 })).toBeNull();
-  });
 });
 
 describe('eventOrigin', () => {

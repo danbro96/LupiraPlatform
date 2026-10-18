@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-domain-places",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Pure Lupira place rules: geo math, place lookup, ranking and picking, pinning, hotspot wording.",
   "license": "MIT",
   "type": "module",

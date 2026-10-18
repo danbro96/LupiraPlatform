@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- `pickPlaces` returns only `places`; the unused `residentsNear` lookup is gone.
+
 ## 0.2.0
 
 - **Breaking:** `placeRequestFromHit(hit, name?)` returns `{ kind: 'fromGeocode', osmType, osmId, name? }` or `{ kind: 'fromPin', name?, lat, lon }` (`PlaceRequest`). The `query` field, the `categories` parameter and the plain `create` request are gone; a hit without OSM ids becomes a pin. Callers in LupiraCal web (`usePlaces`) and mobile (`usePlaceSearch`) move to the from-geocode/from-pin endpoints.

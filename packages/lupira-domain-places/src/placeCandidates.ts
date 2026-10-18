@@ -2,7 +2,7 @@
 // typeahead and contacts' addresses. Folds them into candidates, ranks them (placeRank) and says who lives
 // at each. Inputs are structural, so each app passes its own DTOs or mirror rows straight in.
 
-import { haversineM, type GeoPoint } from './geo.ts';
+import type { GeoPoint } from './geo.ts';
 import { hotspotStats } from './hotspots.ts';
 import { rankPlaces, type PlaceCandidate } from './placeRank.ts';
 import { addressTypeLabel, otherResidentsLine, residentsByPlace, residentsLine, withResidency, type ContactAddressRow } from '@danbro96/lupira-domain-contacts/residents';
@@ -15,8 +15,6 @@ export const PLACE_SUGGEST_LIMIT = 8;
 export const ADDRESS_SEARCH_LIMIT = 5;
 const CANDIDATE_HOTSPOTS = 30;
 const SHOWN_LIMIT = 15;
-/** A geocoder hit this close to a resident's place is taken to be that address. */
-const RESIDENT_RADIUS_M = 30;
 
 export interface PlaceInfo {
   name?: string | null;
@@ -52,10 +50,9 @@ export type PickerPlace = PlaceCandidate & {
 
 const pointOf = (lat?: number | null, lon?: number | null): GeoPoint | null => (lat != null && lon != null ? { lat, lon } : null);
 
-/** Ranked places for the picker, plus a lookup for addresses that aren't places yet (geocoder hits). Before
- *  typing: saved, frequent and invited people's homes. Typing: the typeahead, whatever of those matches, and
- *  the addresses of contacts whose name matches. */
-export function pickPlaces(input: PlacePickerInput): { places: PickerPlace[]; residentsNear: (point: GeoPoint) => string | null } {
+/** Ranked places for the picker. Before typing: saved, frequent and invited people's homes. Typing: the
+ *  typeahead, whatever of those matches, and the addresses of contacts whose name matches. */
+export function pickPlaces(input: PlacePickerInput): { places: PickerPlace[] } {
   const { now, places } = input;
   const q = input.query.trim();
   const typing = q.length >= MIN_PLACE_QUERY;
@@ -107,14 +104,6 @@ export function pickPlaces(input: PlacePickerInput): { places: PickerPlace[]; re
       residentsLine: residentsLine(residents.get(c.placeId)),
       otherLine: otherResidentsLine(residents.get(c.placeId)),
     })),
-    residentsNear: (point) => {
-      for (const [placeId, r] of residents) {
-        const p = places.get(placeId);
-        if (r.active.length > 0 && p?.latitude != null && p.longitude != null
-          && haversineM(point, { lat: p.latitude, lon: p.longitude }) <= RESIDENT_RADIUS_M) return residentsLine(r);
-      }
-      return null;
-    },
   };
 }
 
