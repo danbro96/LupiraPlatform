@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- `@tanstack/query-async-storage-persister`, `@tanstack/react-query-persist-client` and `expo-sqlite` are optional peers; only `queryClient` imports them.
+
 ## 0.1.1
 
 - `queryClient`: queries whose data is not plain JSON (a `Map`, `Set`, `Date` or class instance anywhere in it) are no longer persisted; JSON would restore them as a different shape. `isPlainJson(value)` exported.

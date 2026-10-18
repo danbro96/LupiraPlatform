@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-expo-query",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "React Query setup for the Lupira Expo apps: persisted query client, NetInfo-driven online state, mirror and online query options.",
   "license": "MIT",
   "type": "module",
@@ -25,6 +25,17 @@
     "expo-sqlite": ">=57.0.3",
     "react": "^19.2.3",
     "react-native": ">=0.86.3"
+  },
+  "peerDependenciesMeta": {
+    "@tanstack/query-async-storage-persister": {
+      "optional": true
+    },
+    "@tanstack/react-query-persist-client": {
+      "optional": true
+    },
+    "expo-sqlite": {
+      "optional": true
+    }
   },
   "repository": {
     "type": "git",
