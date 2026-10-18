@@ -3,7 +3,7 @@
 React Query is the only read path in the Lupira Expo apps. Offline aggregates read the SQLite mirror through `mirrorQuery` (never stale, runs offline, refetched when the sync engine reports a change); online-only reads use `onlineQuery` (paused offline, fresh for 5 minutes, one retry on a transient failure) and persist across restarts.
 
 - `queryClient`: `createAppQueryClient({ persistRoots, buster, maxAgeMs? })` → `{ queryClient, persistOptions }`.
-  Only `queryClient` needs the optional peers `@tanstack/query-async-storage-persister`, `@tanstack/react-query-persist-client` and `expo-sqlite`; an app that builds its own client can skip them.
+  Only `queryClient` needs `@tanstack/query-async-storage-persister`, `@tanstack/react-query-persist-client` and `expo-sqlite`; they aren't peers, so an app using it depends on them itself.
 - `online`: `connectOnlineManager()` once at startup; `useOnline()` for screens.
 - `focus`: `connectFocusManager()` once at startup.
 - `mirrorQuery(key, read)`, `onlineQuery(key, fetch)`: `useQuery` options.

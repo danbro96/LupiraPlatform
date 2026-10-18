@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3
+
+- `@tanstack/query-async-storage-persister`, `@tanstack/react-query-persist-client` and `expo-sqlite` are no longer peers: GitHub Packages drops `peerDependenciesMeta`, so npm installed them anyway. An app using `queryClient` depends on them itself.
+
 ## 0.1.2
 
 - `@tanstack/query-async-storage-persister`, `@tanstack/react-query-persist-client` and `expo-sqlite` are optional peers; only `queryClient` imports them.
