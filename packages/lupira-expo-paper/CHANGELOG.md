@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.0
+- `SyncStatusView` disables Sync now while offline.
+- `syncStatusLine` reports Offline ahead of a running sync.
+
 ## 0.7.0
 - `IdentityHeader` is a compact row: a 40dp avatar beside the name and subtitle.
 - `SignOutButton` is a settings row: "Sign out" with a logout icon, danger-tinted, still behind the confirm.

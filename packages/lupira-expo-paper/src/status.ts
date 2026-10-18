@@ -35,7 +35,7 @@ export function offlineBannerState(online: boolean): StatusBannerState | null {
 }
 
 export function syncStatusLine(status: Pick<SyncViewStatus, 'phase' | 'serverReachable' | 'lastSyncAt'>, online = true): string {
-  const state = status.phase !== 'idle' ? 'Syncing…' : !online ? 'Offline' : status.serverReachable ? 'Server reachable' : "Can't reach server";
+  const state = !online ? 'Offline' : status.phase !== 'idle' ? 'Syncing…' : status.serverReachable ? 'Server reachable' : "Can't reach server";
   return status.lastSyncAt ? `${state} · last sync ${new Date(status.lastSyncAt).toLocaleTimeString()}` : state;
 }
 

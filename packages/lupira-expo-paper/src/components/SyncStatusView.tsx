@@ -36,7 +36,7 @@ export function SyncStatusView<Op extends ParkedChangeOp>({
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.statusRow}>
         <Text style={[styles.statusText, { color: c.textMuted }]}>{syncStatusLine(status, online)}</Text>
-        <Button title="Sync now" variant="secondary" onPress={onSync} disabled={syncing} />
+        <Button title="Sync now" variant="secondary" onPress={onSync} disabled={syncing || !online} />
       </View>
       {lastError ? <Text style={[styles.small, { color: c.warning ?? c.danger }]}>{lastError}</Text> : null}
 

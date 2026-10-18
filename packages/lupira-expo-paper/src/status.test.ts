@@ -14,8 +14,12 @@ describe('offlineBannerState', () => {
 describe('syncStatusLine', () => {
   const idle = { phase: 'idle', serverReachable: true, lastSyncAt: null };
 
-  it('puts a running sync first', () => {
-    expect(syncStatusLine({ ...idle, phase: 'pull', serverReachable: false }, false)).toBe('Syncing…');
+  it('puts the device being offline before a running sync', () => {
+    expect(syncStatusLine({ ...idle, phase: 'pull', serverReachable: false }, false)).toBe('Offline');
+  });
+
+  it('shows a running sync online', () => {
+    expect(syncStatusLine({ ...idle, phase: 'pull', serverReachable: false })).toBe('Syncing…');
   });
 
   it('puts the device being offline before the server', () => {

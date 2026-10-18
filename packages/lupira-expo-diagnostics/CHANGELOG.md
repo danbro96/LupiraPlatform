@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.4
+- Accepts `@danbro96/lupira-expo-paper` ^0.8.0.
+
 ## 0.2.3
 - Accepts `@danbro96/lupira-expo-paper` ^0.7.0 and `@danbro96/lupira-tokens-core` ^0.3.0.
 
