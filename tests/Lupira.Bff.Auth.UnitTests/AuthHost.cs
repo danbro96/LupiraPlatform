@@ -40,6 +40,8 @@ public sealed class AuthHost : IAsyncDisposable
 
     public ExposedSurface Surface { get; }
 
+    public IServiceProvider Services => _app.Services;
+
     public static void Cal(LupiraBffAuthOptions o)
     {
         o.EnableOidc = true;

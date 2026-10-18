@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Lupira.Bff.Auth;
 
@@ -21,6 +22,8 @@ namespace Lupira.Bff.Auth;
 /// </summary>
 public static class LupiraBffAuthExtensions
 {
+    internal const string RetriedItem = "lupira.retried";
+
     public static AuthenticationBuilder AddLupiraBffAuth(
         this WebApplicationBuilder builder, Action<LupiraBffAuthOptions> configure)
     {
@@ -199,12 +202,45 @@ public static class LupiraBffAuthExtensions
 
                     return Task.CompletedTask;
                 };
+                o.Events.OnRemoteFailure = context => RetryStaleSignIn(context, $"{options.CookieName}-retry");
             });
 
         // Keeps the forwarded access token fresh via the refresh token (offline_access).
         services.AddOpenIdConnectAccessTokenManagement();
         return auth;
     }
+
+    /// <summary>A stale tab or replayed callback gets one fresh challenge instead of an error page. The retry is marked
+    /// in the new state (survives a dropped correlation cookie) and in a cookie (survives an unreadable state).</summary>
+    private static async Task RetryStaleSignIn(RemoteFailureContext context, string retryCookie)
+    {
+        if (context.Failure is not { } failure
+            || !IsStaleCallback(failure)
+            || context.Properties?.Items.ContainsKey(RetriedItem) == true
+            || context.Request.Cookies.ContainsKey(retryCookie))
+            return;
+
+        var returnUrl = LupiraAuthEndpoints.SafeReturnUrl(context.Properties?.RedirectUri);
+        context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(LupiraBffAuthExtensions))
+            .LogInformation("Stale sign-in callback ({Failure}); challenging again for {ReturnUrl}", failure.Message, returnUrl);
+        context.Response.Cookies.Append(retryCookie, "1", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Path = "/",
+            MaxAge = TimeSpan.FromMinutes(1),
+        });
+        var properties = new AuthenticationProperties { RedirectUri = returnUrl };
+        properties.Items[RetriedItem] = "1";
+        await context.HttpContext.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme, properties);
+        context.HandleResponse();
+    }
+
+    private static bool IsStaleCallback(Exception failure) => failure.Message is
+        "Correlation failed."
+        or "Unable to unprotect the message.State."
+        or "OpenIdConnectAuthenticationHandler: message.State is null or empty.";
 
     private static bool IsApiPath(HttpContext context) =>
         context.RequestServices.GetRequiredService<ApiPaths>().Contains(context.Request.Path);
