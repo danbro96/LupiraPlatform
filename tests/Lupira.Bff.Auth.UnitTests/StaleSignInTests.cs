@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.WebUtilities;
@@ -38,6 +39,20 @@ public sealed class StaleSignInTests
     }
 
     [Fact]
+    public async Task A_callback_without_state_challenges_again_for_the_root()
+    {
+        await using var host = await AuthHost.StartAsync("cal", "Production", AuthHost.Cal);
+
+        var res = await host.Client().SendAsync(new HttpRequestMessage(HttpMethod.Post, "/signin-oidc")
+        {
+            Content = new FormUrlEncodedContent([new("code", "c")]),
+        });
+
+        Assert.Equal(HttpStatusCode.Redirect, res.StatusCode);
+        Assert.Equal("/", RetryState(host, res).RedirectUri);
+    }
+
+    [Fact]
     public async Task A_retried_sign_in_that_fails_again_is_not_retried()
     {
         await using var host = await AuthHost.StartAsync("cal", "Production", AuthHost.Cal);
@@ -69,6 +84,45 @@ public sealed class StaleSignInTests
         await Assert.ThrowsAsync<AuthenticationFailureException>(() => host.Client().SendAsync(request));
     }
 
+    [Fact]
+    public async Task A_successful_sign_in_forgets_the_retry_mark()
+    {
+        await using var host = await AuthHost.StartAsync("cal", "Production", AuthHost.Cal, oidc: IdentityProvider.Configure);
+
+        var res = await host.Client().SendAsync(SuccessfulCallback(host, "__Host-lupira-cal-retry=1"));
+
+        Assert.Equal(HttpStatusCode.Redirect, res.StatusCode);
+        Assert.Equal("/calendar", res.Headers.Location?.OriginalString);
+        var forgotten = Assert.Single(res.Headers.GetValues("Set-Cookie"), c => c.StartsWith("__Host-lupira-cal-retry=", StringComparison.Ordinal));
+        Assert.StartsWith("__Host-lupira-cal-retry=; expires=Thu, 01 Jan 1970", forgotten, StringComparison.Ordinal);
+        Assert.Contains("path=/", forgotten, StringComparison.Ordinal);
+        Assert.Contains("secure", forgotten, StringComparison.Ordinal);
+        Assert.Contains("samesite=none", forgotten, StringComparison.Ordinal);
+        Assert.Contains("httponly", forgotten, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task A_sign_in_without_a_retry_mark_sets_no_cookie()
+    {
+        await using var host = await AuthHost.StartAsync("cal", "Production", AuthHost.Cal, oidc: IdentityProvider.Configure);
+
+        var res = await host.Client().SendAsync(SuccessfulCallback(host));
+
+        Assert.Equal(HttpStatusCode.Redirect, res.StatusCode);
+        Assert.Contains(res.Headers.GetValues("Set-Cookie"), c => c.StartsWith("__Host-lupira-cal=", StringComparison.Ordinal));
+        Assert.DoesNotContain(res.Headers.GetValues("Set-Cookie"), c => c.StartsWith("__Host-lupira-cal-retry=", StringComparison.Ordinal));
+    }
+
+    private static HttpRequestMessage SuccessfulCallback(AuthHost host, string? cookie = null)
+    {
+        var properties = new AuthenticationProperties { RedirectUri = "/calendar" };
+        properties.Items[".xsrf"] = "nonce";
+        properties.Items[OpenIdConnectDefaults.RedirectUriForCodePropertiesKey] = "http://localhost/signin-oidc";
+        var request = Callback(Protect(host, properties), ("code", "c"));
+        request.Headers.Add("Cookie", string.Join("; ", new[] { ".AspNetCore.Correlation.nonce=N", cookie }.OfType<string>()));
+        return request;
+    }
+
     private static HttpRequestMessage Callback(string state, params (string Key, string Value)[] fields) =>
         new(HttpMethod.Post, "/signin-oidc")
         {
@@ -85,5 +139,23 @@ public sealed class StaleSignInTests
         var location = res.Headers.Location!;
         Assert.StartsWith($"{AuthHost.Issuer}authorize", location.ToString(), StringComparison.Ordinal);
         return StateFormat(host).Unprotect(QueryHelpers.ParseQuery(location.Query)["state"])!;
+    }
+
+    private sealed class IdentityProvider : HttpMessageHandler
+    {
+        public static void Configure(OpenIdConnectOptions o)
+        {
+            o.Backchannel = new HttpClient(new IdentityProvider());
+            o.ProtocolValidator.RequireNonce = false;
+            o.TokenValidationParameters.IssuerSigningKey = AuthHost.SigningKey;
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            object body = request.RequestUri!.AbsolutePath == "/token"
+                ? new { id_token = AuthHost.MintToken(), access_token = "at", token_type = "Bearer", expires_in = 300 }
+                : new { sub = "test|user@test", email = "user@test" };
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = JsonContent.Create(body) });
+        }
     }
 }

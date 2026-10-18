@@ -202,7 +202,9 @@ public static class LupiraBffAuthExtensions
 
                     return Task.CompletedTask;
                 };
-                o.Events.OnRemoteFailure = context => RetryStaleSignIn(context, $"{options.CookieName}-retry");
+                var retryCookie = $"{options.CookieName}-retry";
+                o.Events.OnRemoteFailure = context => RetryStaleSignIn(context, retryCookie);
+                o.Events.OnTicketReceived = context => ForgetRetry(context, retryCookie);
             });
 
         // Keeps the forwarded access token fresh via the refresh token (offline_access).
@@ -215,7 +217,7 @@ public static class LupiraBffAuthExtensions
     private static async Task RetryStaleSignIn(RemoteFailureContext context, string retryCookie)
     {
         if (context.Failure is not { } failure
-            || !IsStaleCallback(failure)
+            || !StaleCallback.Is(failure)
             || context.Properties?.Items.ContainsKey(RetriedItem) == true
             || context.Request.Cookies.ContainsKey(retryCookie))
             return;
@@ -223,24 +225,28 @@ public static class LupiraBffAuthExtensions
         var returnUrl = LupiraAuthEndpoints.SafeReturnUrl(context.Properties?.RedirectUri);
         context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(LupiraBffAuthExtensions))
             .LogInformation("Stale sign-in callback ({Failure}); challenging again for {ReturnUrl}", failure.Message, returnUrl);
-        context.Response.Cookies.Append(retryCookie, "1", new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None,
-            Path = "/",
-            MaxAge = TimeSpan.FromMinutes(1),
-        });
+        context.Response.Cookies.Append(retryCookie, "1", RetryCookie());
         var properties = new AuthenticationProperties { RedirectUri = returnUrl };
         properties.Items[RetriedItem] = "1";
         await context.HttpContext.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme, properties);
         context.HandleResponse();
     }
 
-    private static bool IsStaleCallback(Exception failure) => failure.Message is
-        "Correlation failed."
-        or "Unable to unprotect the message.State."
-        or "OpenIdConnectAuthenticationHandler: message.State is null or empty.";
+    private static Task ForgetRetry(TicketReceivedContext context, string retryCookie)
+    {
+        if (context.Request.Cookies.ContainsKey(retryCookie))
+            context.Response.Cookies.Delete(retryCookie, RetryCookie());
+        return Task.CompletedTask;
+    }
+
+    private static CookieOptions RetryCookie() => new()
+    {
+        HttpOnly = true,
+        Secure = true,
+        SameSite = SameSiteMode.None,
+        Path = "/",
+        MaxAge = TimeSpan.FromMinutes(1),
+    };
 
     private static bool IsApiPath(HttpContext context) =>
         context.RequestServices.GetRequiredService<ApiPaths>().Contains(context.Request.Path);

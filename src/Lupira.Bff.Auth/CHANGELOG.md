@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.3
+- A successful sign-in deletes the `<CookieName>-retry` mark, so a stale callback in the same minute gets its fresh challenge again.
+
 ## 0.2.2
 - A sign-in callback that fails on its correlation cookie or state (a stale tab, a replayed form post to `/signin-oidc`) logs at Information and challenges once more for the same safe return URL instead of showing an error page. The retry is marked in the new state and a one-minute `<CookieName>-retry` cookie, so a second failure falls through to the default error. Other remote failures are unchanged.
 

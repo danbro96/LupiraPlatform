@@ -24,7 +24,7 @@ public sealed class AuthHost : IAsyncDisposable
 {
     public const string Issuer = "https://auth.test/";
 
-    private static readonly SymmetricSecurityKey SigningKey =
+    internal static readonly SymmetricSecurityKey SigningKey =
         new(Encoding.UTF8.GetBytes("lupira-bff-auth-unit-test-signing-key-0123456789abcdef"));
 
     private readonly WebApplication _app;
@@ -59,7 +59,8 @@ public sealed class AuthHost : IAsyncDisposable
         string environment,
         Action<LupiraBffAuthOptions> configure,
         Action<WebApplication>? map = null,
-        IReadOnlyDictionary<string, string>? settings = null)
+        IReadOnlyDictionary<string, string>? settings = null,
+        Action<OpenIdConnectOptions>? oidc = null)
     {
         var upstream = await StubUpstream.StartAsync();
         var surface = ExposedSurface.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", $"{fixture}.exposed.json")));
@@ -90,7 +91,9 @@ public sealed class AuthHost : IAsyncDisposable
                     Issuer = Issuer,
                     AuthorizationEndpoint = $"{Issuer}authorize",
                     TokenEndpoint = $"{Issuer}token",
+                    UserInfoEndpoint = $"{Issuer}userinfo",
                 });
+            oidc?.Invoke(o);
         });
 
         var app = builder.Build();
