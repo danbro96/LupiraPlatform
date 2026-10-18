@@ -14,6 +14,8 @@ public sealed class OpResultMapTests
         { OpStatus.Conflict, StatusCodes.Status409Conflict },
     };
 
+    public static TheoryData<OpStatus> FailureStatuses => new() { OpStatus.Invalid, OpStatus.Forbidden, OpStatus.Conflict };
+
     [Theory]
     [MemberData(nameof(ProblemStatuses))]
     public void Problem_shapes_map_each_failure_to_its_status(OpStatus status, int expected)
@@ -37,6 +39,30 @@ public sealed class OpResultMapTests
                 Assert.Equal("why", problem.ProblemDetails.Detail);
                 Assert.Equal($"https://httpstatuses.com/{expected}", problem.ProblemDetails.Type);
             });
+    }
+
+    [Theory]
+    [MemberData(nameof(FailureStatuses))]
+    public void A_typed_failure_carries_its_problem_type(OpStatus status)
+    {
+        const string type = "https://example.test/problems/why";
+        var (value, unit) = status switch
+        {
+            OpStatus.Invalid => (OpResult<int>.Invalid("why", type), OpResult.Invalid("why", type)),
+            OpStatus.Forbidden => (OpResult<int>.Forbidden("why", type), OpResult.Forbidden("why", type)),
+            _ => (OpResult<int>.Conflict("why", type), OpResult.Conflict("why", type)),
+        };
+
+        Assert.All(
+            new[]
+            {
+                OpResultMap.OkProblem(value).Result,
+                OpResultMap.OkNotFoundProblem(value).Result,
+                OpResultMap.OkNotFoundProblem(value, v => v.ToString()).Result,
+                OpResultMap.AcceptedProblem(value).Result,
+                OpResultMap.NoContentNotFoundProblem(unit).Result,
+            },
+            r => Assert.Equal(type, Assert.IsType<ProblemHttpResult>(r).ProblemDetails.Type));
     }
 
     [Fact]

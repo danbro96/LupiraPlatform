@@ -10,31 +10,31 @@ namespace Lupira.Hosting.Problems;
 /// </summary>
 public static class Problems
 {
-    public static ProblemHttpResult BadRequest(string detail, string? title = null) =>
+    public static ProblemHttpResult BadRequest(string detail, string? title = null, string? type = null) =>
         TypedResults.Problem(
             title: title ?? "Bad request",
             detail: detail,
             statusCode: StatusCodes.Status400BadRequest,
-            type: "https://httpstatuses.com/400");
+            type: type ?? "https://httpstatuses.com/400");
 
-    public static ProblemHttpResult Forbidden(string detail, string? title = null) =>
+    public static ProblemHttpResult Forbidden(string detail, string? title = null, string? type = null) =>
         TypedResults.Problem(
             title: title ?? "Forbidden",
             detail: detail,
             statusCode: StatusCodes.Status403Forbidden,
-            type: "https://httpstatuses.com/403");
+            type: type ?? "https://httpstatuses.com/403");
 
-    public static ProblemHttpResult Conflict(string detail, string? title = null) =>
+    public static ProblemHttpResult Conflict(string detail, string? title = null, string? type = null) =>
         TypedResults.Problem(
             title: title ?? "Conflict",
             detail: detail,
             statusCode: StatusCodes.Status409Conflict,
-            type: "https://httpstatuses.com/409");
+            type: type ?? "https://httpstatuses.com/409");
 
-    public static ProblemHttpResult BadGateway(string detail, string? title = null) =>
+    public static ProblemHttpResult BadGateway(string detail, string? title = null, string? type = null) =>
         TypedResults.Problem(
             title: title ?? "Upstream unavailable",
             detail: detail,
             statusCode: StatusCodes.Status502BadGateway,
-            type: "https://httpstatuses.com/502");
+            type: type ?? "https://httpstatuses.com/502");
 }

@@ -28,9 +28,9 @@ public static class OpResultMap
     public static Results<Ok<T>, ProblemHttpResult, UnauthorizedHttpResult> OkProblem<T>(OpResult<T> r) => r.Status switch
     {
         OpStatus.Ok => TypedResults.Ok(r.Value!),
-        OpStatus.Invalid => Problems.BadRequest(r.Error!),
-        OpStatus.Forbidden => Problems.Forbidden(r.Error!),
-        OpStatus.Conflict => Problems.Conflict(r.Error!),
+        OpStatus.Invalid => Problems.BadRequest(r.Error!, type: r.Type),
+        OpStatus.Forbidden => Problems.Forbidden(r.Error!, type: r.Type),
+        OpStatus.Conflict => Problems.Conflict(r.Error!, type: r.Type),
         _ => throw Unexpected(r.Status),
     };
 
@@ -38,9 +38,9 @@ public static class OpResultMap
     {
         OpStatus.Ok => TypedResults.Ok(r.Value!),
         OpStatus.NotFound => TypedResults.NotFound(),
-        OpStatus.Forbidden => Problems.Forbidden(r.Error!),
-        OpStatus.Invalid => Problems.BadRequest(r.Error!),
-        OpStatus.Conflict => Problems.Conflict(r.Error!),
+        OpStatus.Forbidden => Problems.Forbidden(r.Error!, type: r.Type),
+        OpStatus.Invalid => Problems.BadRequest(r.Error!, type: r.Type),
+        OpStatus.Conflict => Problems.Conflict(r.Error!, type: r.Type),
         _ => throw Unexpected(r.Status),
     };
 
@@ -50,9 +50,9 @@ public static class OpResultMap
         {
             OpStatus.Ok => TypedResults.Ok(project(r.Value!)),
             OpStatus.NotFound => TypedResults.NotFound(),
-            OpStatus.Forbidden => Problems.Forbidden(r.Error!),
-            OpStatus.Invalid => Problems.BadRequest(r.Error!),
-            OpStatus.Conflict => Problems.Conflict(r.Error!),
+            OpStatus.Forbidden => Problems.Forbidden(r.Error!, type: r.Type),
+            OpStatus.Invalid => Problems.BadRequest(r.Error!, type: r.Type),
+            OpStatus.Conflict => Problems.Conflict(r.Error!, type: r.Type),
             _ => throw Unexpected(r.Status),
         };
 
@@ -60,9 +60,9 @@ public static class OpResultMap
     public static Results<Accepted<T>, ProblemHttpResult> AcceptedProblem<T>(OpResult<T> r) => r.Status switch
     {
         OpStatus.Ok => TypedResults.Accepted((string?) null, r.Value!),
-        OpStatus.Invalid => Problems.BadRequest(r.Error!),
-        OpStatus.Forbidden => Problems.Forbidden(r.Error!),
-        OpStatus.Conflict => Problems.Conflict(r.Error!),
+        OpStatus.Invalid => Problems.BadRequest(r.Error!, type: r.Type),
+        OpStatus.Forbidden => Problems.Forbidden(r.Error!, type: r.Type),
+        OpStatus.Conflict => Problems.Conflict(r.Error!, type: r.Type),
         _ => throw Unexpected(r.Status),
     };
 
@@ -77,9 +77,9 @@ public static class OpResultMap
     {
         OpStatus.Ok => TypedResults.NoContent(),
         OpStatus.NotFound => TypedResults.NotFound(),
-        OpStatus.Forbidden => Problems.Forbidden(r.Error!),
-        OpStatus.Invalid => Problems.BadRequest(r.Error!),
-        OpStatus.Conflict => Problems.Conflict(r.Error!),
+        OpStatus.Forbidden => Problems.Forbidden(r.Error!, type: r.Type),
+        OpStatus.Invalid => Problems.BadRequest(r.Error!, type: r.Type),
+        OpStatus.Conflict => Problems.Conflict(r.Error!, type: r.Type),
         _ => throw Unexpected(r.Status),
     };
 
