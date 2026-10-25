@@ -12,4 +12,5 @@ public enum OpStatus
     Forbidden,
     Invalid,
     Conflict,
+    Unavailable,
 }

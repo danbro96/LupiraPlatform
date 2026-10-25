@@ -22,4 +22,8 @@ public readonly record struct OpResult<T>(OpStatus Status, T? Value, string? Err
     public static OpResult<T> Conflict(string error) => new(OpStatus.Conflict, default, error);
 
     public static OpResult<T> Conflict(string error, string type) => new(OpStatus.Conflict, default, error) { Type = type };
+
+    public static OpResult<T> Unavailable(string error) => new(OpStatus.Unavailable, default, error);
+
+    public static OpResult<T> Unavailable(string error, string type) => new(OpStatus.Unavailable, default, error) { Type = type };
 }
