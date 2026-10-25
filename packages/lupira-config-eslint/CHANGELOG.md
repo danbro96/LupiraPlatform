@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0
+
+- **Breaking**: type-aware linting. Every preset parses with `projectService` and errors on `@typescript-eslint/no-floating-promises` (`ignoreVoid: false`) and `@typescript-eslint/no-misused-promises`; linted files must be in a tsconfig. `pure()` test files lint untyped.
+- `tsconfigRootDir` option on every preset (default: the cwd); pass `import.meta.dirname`.
+- Known never-rejecting calls may float when written bare (no `void`): `QueryClient.invalidateQueries` and the sync engine's `sync()`.
+- `mobile()` allows `@danbro96/lupira-expo-maplibre` from `ui`.
+
 ## 0.3.0
 
 - `mobile()` allows `@danbro96/lupira-sync-engine` (including `/expo/triggers`) and `@danbro96/lupira-expo-query` from `sync`, `state` and `ui`, and `@danbro96/lupira-expo-oidc/authStore` from `state` and `ui`.

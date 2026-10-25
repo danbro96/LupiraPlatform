@@ -22,19 +22,40 @@ const CONFIG_FILES = ['*.config.js', '*.config.mjs', '*.config.ts', '*.config.mt
 
 const RESOLVER = { typescript: { alwaysTryTypes: true } };
 
-const parser = (jsx: boolean): Linter.Config['languageOptions'] => ({
+const parser = (jsx: boolean, tsconfigRootDir: string): Linter.Config['languageOptions'] => ({
   parser: tseslint.parser as Linter.Parser,
-  ...(jsx ? { parserOptions: { ecmaFeatures: { jsx: true } } } : {}),
+  parserOptions: { projectService: true, tsconfigRootDir, ...(jsx ? { ecmaFeatures: { jsx: true } } : {}) },
 });
 
 const plugins = (react: boolean): Linter.Config['plugins'] => ({
   boundaries: boundaries as unknown as NonNullable<Linter.Config['plugins']>[string],
+  '@typescript-eslint': tseslint.plugin as unknown as NonNullable<Linter.Config['plugins']>[string],
   ...(react ? { 'react-hooks': reactHooks as unknown as NonNullable<Linter.Config['plugins']>[string] } : {}),
 });
 
 const hookRules = (react: boolean): Linter.RulesRecord => (react ? reactHooks.configs['recommended-latest'].rules : {});
 
-export interface PureOptions {
+const PROMISE_RULES: Linter.RulesRecord = {
+  '@typescript-eslint/no-floating-promises': [
+    'error',
+    {
+      ignoreVoid: false,
+      // Contracted never to reject: invalidation resolves without throwOnError; sync failures land in its status.
+      allowForKnownSafeCalls: [
+        { from: 'package', name: 'invalidateQueries', package: '@tanstack/query-core' },
+        { from: 'package', name: 'sync', package: '@danbro96/lupira-sync-engine' },
+      ],
+    },
+  ],
+  '@typescript-eslint/no-misused-promises': 'error',
+};
+
+export interface TypedOptions {
+  /** Absolute root for the type-aware rules' tsconfig lookup; pass `import.meta.dirname`. Defaults to the cwd. */
+  tsconfigRootDir?: string;
+}
+
+export interface PureOptions extends TypedOptions {
   /** The element name lint messages report the package as. */
   element?: string;
   /** npm modules production code may import, e.g. the package's peer dependencies or a types-only package. */
@@ -48,7 +69,7 @@ export interface PureOptions {
  * Test files get a trailing override block (v7 element patterns match folders, so a test-file glob
  * element could never classify them).
  */
-export function pure({ element = 'package', allowModules = [], react = false }: PureOptions = {}): Linter.Config[] {
+export function pure({ element = 'package', allowModules = [], react = false, tsconfigRootDir = process.cwd() }: PureOptions = {}): Linter.Config[] {
   const policies: Policy[] = [{ from: { element: { type: element } }, allow: to(element) }];
   if (allowModules.length) {
     policies.push({
@@ -60,7 +81,7 @@ export function pure({ element = 'package', allowModules = [], react = false }: 
     { ignores: ['node_modules/**', 'dist/**', ...CONFIG_FILES] },
     {
       files: ['src/**/*.{ts,tsx}'],
-      languageOptions: parser(react),
+      languageOptions: parser(react, tsconfigRootDir),
       plugins: plugins(react),
       settings: {
         'boundaries/elements': [{ type: element, pattern: 'src/**' }],
@@ -70,19 +91,22 @@ export function pure({ element = 'package', allowModules = [], react = false }: 
         // checkAllOrigins widens the rule from local elements to npm imports as well.
         'boundaries/dependencies': ['error', { checkAllOrigins: true, default: 'disallow', policies }],
         ...hookRules(react),
+        ...PROMISE_RULES,
       },
     },
     {
       // Tests may use the runner + node builtins for fixtures; the boundary gate is for production code.
       files: ['src/**/*.test.{ts,tsx}'],
+      languageOptions: { parserOptions: { projectService: false } },
       rules: {
         'boundaries/dependencies': ['error', { default: 'disallow', policies }],
+        ...tseslint.configs.disableTypeChecked.rules,
       },
     },
   ];
 }
 
-export interface AppOptions {
+export interface AppOptions extends TypedOptions {
   /** Generated clients and other non-authored paths, on top of build output and config files. */
   ignores?: string[];
 }
@@ -96,7 +120,7 @@ export interface WebOptions extends AppOptions {
  * The online-only web client: downward-only (domain →) data → state → ui, with `config` a leaf any layer may
  * import. Platform packages sit at the layer their name declares.
  */
-export function web({ ignores = [], domain = false }: WebOptions = {}): Linter.Config[] {
+export function web({ ignores = [], domain = false, tsconfigRootDir = process.cwd() }: WebOptions = {}): Linter.Config[] {
   const below = domain ? ['domain'] : [];
   const policies: Policy[] = [
     ...(domain ? [{ from: { element: { type: 'domain' } }, allow: to('domain') }] : []),
@@ -116,7 +140,7 @@ export function web({ ignores = [], domain = false }: WebOptions = {}): Linter.C
     { ignores: ['node_modules/**', 'dist/**', ...ignores, ...CONFIG_FILES] },
     {
       files: ['src/**/*.{ts,tsx}'],
-      languageOptions: parser(true),
+      languageOptions: parser(true, tsconfigRootDir),
       plugins: plugins(true),
       settings: {
         'boundaries/elements': [
@@ -131,6 +155,7 @@ export function web({ ignores = [], domain = false }: WebOptions = {}): Linter.C
       rules: {
         'boundaries/dependencies': ['error', { default: 'disallow', policies, checkAllOrigins: true }],
         ...hookRules(true),
+        ...PROMISE_RULES,
       },
     },
   ];
@@ -160,7 +185,7 @@ const STACK = ['data', 'sync', 'state', 'ui'];
  * The offline-first Expo app: downward-only domain → data → sync → state → ui, with `config` a leaf. Platform
  * packages sit at the layer their name declares; `expo-sqlite/node` is for tests only.
  */
-export function mobile({ ignores = [], generated = 'src/data/api/generated', domainImportsGenerated = false, layers = [] }: MobileOptions = {}): Linter.Config[] {
+export function mobile({ ignores = [], generated = 'src/data/api/generated', domainImportsGenerated = false, layers = [], tsconfigRootDir = process.cwd() }: MobileOptions = {}): Linter.Config[] {
   const extra = layers.map((l) => l.name);
   const importedBy = (layer: string) => layers.filter((l) => l.importedBy.includes(layer)).map((l) => l.name);
   const stack = (layer: string, imports: string[]) =>
@@ -188,7 +213,7 @@ export function mobile({ ignores = [], generated = 'src/data/api/generated', dom
     ...fromEach([...STACK, ...extra], dataUp),
     ...fromEach(['sync', 'state', 'ui'], [platform(['@danbro96/lupira-sync-engine', '@danbro96/lupira-expo-query'])]),
     ...fromEach(['state', 'ui'], [platform('@danbro96/lupira-expo-oidc', 'authStore')]),
-    { from: { element: { type: 'ui' } }, allow: [platform(['@danbro96/lupira-expo-paper', '@danbro96/lupira-expo-diagnostics'])] },
+    { from: { element: { type: 'ui' } }, allow: [platform(['@danbro96/lupira-expo-paper', '@danbro96/lupira-expo-diagnostics', '@danbro96/lupira-expo-maplibre'])] },
     ...more,
   ];
   const files = ['src/**/*.{ts,tsx}', 'App.tsx', 'index.ts'];
@@ -196,7 +221,7 @@ export function mobile({ ignores = [], generated = 'src/data/api/generated', dom
     { ignores: ['node_modules/**', '.expo/**', 'android/**', 'dist/**', `${generated}/**`, ...ignores, ...CONFIG_FILES] },
     {
       files,
-      languageOptions: parser(true),
+      languageOptions: parser(true, tsconfigRootDir),
       plugins: plugins(true),
       settings: {
         'boundaries/elements': [
@@ -214,6 +239,7 @@ export function mobile({ ignores = [], generated = 'src/data/api/generated', dom
       rules: {
         'boundaries/dependencies': ['error', { default: 'disallow', policies: policies(), checkAllOrigins: true }],
         ...hookRules(true),
+        ...PROMISE_RULES,
         'no-restricted-imports': ['error', { paths: [{ name: '@danbro96/lupira-expo-sqlite/node', message: 'node:sqlite is for tests; Metro cannot bundle it.' }] }],
       },
     },

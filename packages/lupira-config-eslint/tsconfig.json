@@ -1,3 +1,6 @@
 {
-  "extends": "@danbro96/lupira-config-ts/tsconfig.library.json"
+  "extends": "@danbro96/lupira-config-ts/tsconfig.library.json",
+  "compilerOptions": {
+    "types": ["node"]
+  }
 }

@@ -10,13 +10,14 @@ const dirs: string[] = [];
 async function lint(config: Linter.Config[], files: Record<string, string>): Promise<Record<string, string[]>> {
   const cwd = mkdtempSync(join(tmpdir(), 'lupira-eslint-'));
   dirs.push(cwd);
+  writeFileSync(join(cwd, 'tsconfig.json'), JSON.stringify({ compilerOptions: { strict: true, jsx: 'react-jsx' }, include: ['src'] }));
   for (const [path, source] of Object.entries(files)) {
     mkdirSync(dirname(join(cwd, path)), { recursive: true });
     writeFileSync(join(cwd, path), source);
   }
   const results = await new ESLint({ cwd, overrideConfigFile: true, overrideConfig: config }).lintFiles(['src/**/*.{ts,tsx}']);
   return Object.fromEntries(
-    results.map((r) => [r.filePath.slice(cwd.length + 1), r.messages.filter((m) => m.ruleId?.startsWith('boundaries/') || m.ruleId === 'no-restricted-imports').map((m) => m.ruleId!)]),
+    results.map((r) => [r.filePath.slice(cwd.length + 1), r.messages.filter((m) => !m.ruleId?.startsWith('react-hooks/')).map((m) => m.ruleId ?? m.message)]),
   );
 }
 
@@ -49,7 +50,7 @@ describe('mobile()', () => {
       'src/data/a.test.ts': "import '@danbro96/lupira-expo-sqlite/node';\n",
       'src/sync/a.ts': "import '@danbro96/lupira-sync-engine/engine';\nimport '@danbro96/lupira-sync-engine/expo/triggers';\nimport '@danbro96/lupira-expo-query/invalidateOnChange';\n",
       'src/state/a.ts': "import '@danbro96/lupira-sync-engine/bannerState';\nimport '@danbro96/lupira-expo-query/mirrorQuery';\nimport '@danbro96/lupira-expo-oidc/authStore';\n",
-      'src/ui/b.tsx': "import '@danbro96/lupira-sync-engine/expo/triggers';\nimport '@danbro96/lupira-expo-query/online';\n",
+      'src/ui/b.tsx': "import '@danbro96/lupira-sync-engine/expo/triggers';\nimport '@danbro96/lupira-expo-query/online';\nimport '@danbro96/lupira-expo-maplibre/mapAuthHeader';\n",
     });
     expect(Object.entries(result).filter(([, v]) => v.length)).toEqual([]);
   });
@@ -70,6 +71,7 @@ describe('mobile()', () => {
     ['domain imports the sync engine', 'src/domain/bad.ts', "import '@danbro96/lupira-sync-engine/types';"],
     ['data imports the query kit', 'src/data/bad.ts', "import '@danbro96/lupira-expo-query/mirrorQuery';"],
     ['domain imports the query kit', 'src/domain/bad.ts', "import '@danbro96/lupira-expo-query/queryClient';"],
+    ['data imports the map auth header', 'src/data/bad.ts', "import '@danbro96/lupira-expo-maplibre/mapAuthHeader';"],
     ['production code imports the node test double', 'src/data/bad.ts', "import '@danbro96/lupira-expo-sqlite/node';"],
   ])('rejects: %s', async (_name, path, source) => {
     const result = await lint(mobile({ layers: [collector] }), { ...stack, [path]: `${source}\n` });
@@ -79,6 +81,16 @@ describe('mobile()', () => {
   it('lets domain import the generated types only on request', async () => {
     const files = { ...stack, 'src/domain/a.ts': "import '../data/api/generated/leaf';\n" };
     expect((await lint(mobile({ domainImportsGenerated: true }), files))['src/domain/a.ts']).toEqual([]);
+  });
+
+  it('rejects un-awaited and misused promises', async () => {
+    const path = 'src/data/bad.ts';
+    const source = 'async function f(): Promise<void> {}\nf();\nvoid f();\nf().catch(() => {});\n[1].forEach(async () => {});\n';
+    expect((await lint(mobile(), { [path]: source }))[path]).toEqual([
+      '@typescript-eslint/no-floating-promises',
+      '@typescript-eslint/no-floating-promises',
+      '@typescript-eslint/no-misused-promises',
+    ]);
   });
 });
 
