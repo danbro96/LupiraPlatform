@@ -50,7 +50,7 @@ describe('mobile()', () => {
       'src/data/a.test.ts': "import '@danbro96/lupira-expo-sqlite/node';\n",
       'src/sync/a.ts': "import '@danbro96/lupira-sync-engine/engine';\nimport '@danbro96/lupira-sync-engine/expo/triggers';\nimport '@danbro96/lupira-expo-query/invalidateOnChange';\n",
       'src/state/a.ts': "import '@danbro96/lupira-sync-engine/bannerState';\nimport '@danbro96/lupira-expo-query/mirrorQuery';\nimport '@danbro96/lupira-expo-oidc/authStore';\n",
-      'src/ui/b.tsx': "import '@danbro96/lupira-sync-engine/expo/triggers';\nimport '@danbro96/lupira-expo-query/online';\nimport '@danbro96/lupira-expo-maplibre/mapAuthHeader';\n",
+      'src/ui/b.tsx': "import '@danbro96/lupira-sync-engine/expo/triggers';\nimport '@danbro96/lupira-expo-query/online';\nimport '@danbro96/lupira-expo-maplibre/mapAuthHeader';\nimport '@danbro96/lupira-expo-oidc/useOidcLogin';\n",
     });
     expect(Object.entries(result).filter(([, v]) => v.length)).toEqual([]);
   });
@@ -71,6 +71,7 @@ describe('mobile()', () => {
     ['domain imports the sync engine', 'src/domain/bad.ts', "import '@danbro96/lupira-sync-engine/types';"],
     ['data imports the query kit', 'src/data/bad.ts', "import '@danbro96/lupira-expo-query/mirrorQuery';"],
     ['domain imports the query kit', 'src/domain/bad.ts', "import '@danbro96/lupira-expo-query/queryClient';"],
+    ['state imports the login hook', 'src/state/bad.ts', "import '@danbro96/lupira-expo-oidc/useOidcLogin';"],
     ['data imports the map auth header', 'src/data/bad.ts', "import '@danbro96/lupira-expo-maplibre/mapAuthHeader';"],
     ['production code imports the node test double', 'src/data/bad.ts', "import '@danbro96/lupira-expo-sqlite/node';"],
   ])('rejects: %s', async (_name, path, source) => {

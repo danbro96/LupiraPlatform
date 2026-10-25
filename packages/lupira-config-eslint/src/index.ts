@@ -214,6 +214,7 @@ export function mobile({ ignores = [], generated = 'src/data/api/generated', dom
     ...fromEach(['sync', 'state', 'ui'], [platform(['@danbro96/lupira-sync-engine', '@danbro96/lupira-expo-query'])]),
     ...fromEach(['state', 'ui'], [platform('@danbro96/lupira-expo-oidc', 'authStore')]),
     { from: { element: { type: 'ui' } }, allow: [platform(['@danbro96/lupira-expo-paper', '@danbro96/lupira-expo-diagnostics', '@danbro96/lupira-expo-maplibre'])] },
+    { from: { element: { type: 'ui' } }, allow: [platform('@danbro96/lupira-expo-oidc', 'useOidcLogin')] },
     ...more,
   ];
   const files = ['src/**/*.{ts,tsx}', 'App.tsx', 'index.ts'];

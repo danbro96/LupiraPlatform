@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+
+- `mobile()` allows `@danbro96/lupira-expo-oidc/useOidcLogin` from `ui`.
+
 ## 0.4.0
 
 - **Breaking**: type-aware linting. Every preset parses with `projectService` and errors on `@typescript-eslint/no-floating-promises` (`ignoreVoid: false`) and `@typescript-eslint/no-misused-promises`; linted files must be in a tsconfig. `pure()` test files lint untyped.
