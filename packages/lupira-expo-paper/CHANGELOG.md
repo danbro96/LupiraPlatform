@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.8.1
+- `SignOutButton` and `SyncStatusView`'s Discard show an error toast when the confirmed action throws.
+
 ## 0.8.0
 - `SyncStatusView` disables Sync now while offline.
 - `syncStatusLine` reports Offline ahead of a running sync.

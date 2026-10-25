@@ -1,4 +1,5 @@
 import { List } from 'react-native-paper';
+import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { ICONS } from '../icons.ts';
 import { useColors } from '../theme/useColors.ts';
 import { useConfirm } from './ConfirmDialog.tsx';
@@ -12,9 +13,12 @@ export function SignOutButton({ onSignOut, label = 'Sign out', message = 'You wi
   const c = useColors();
   const confirm = useConfirm();
 
-  async function press() {
-    const ok = await confirm({ title: `${label}?`, message, confirmLabel: label, destructive: true });
-    if (ok) onSignOut();
+  function press() {
+    confirm({ title: `${label}?`, message, confirmLabel: label, destructive: true })
+      .then(ok => {
+        if (ok) onSignOut();
+      })
+      .catch(() => toastError(`${label} failed`));
   }
 
   return (
@@ -22,7 +26,7 @@ export function SignOutButton({ onSignOut, label = 'Sign out', message = 'You wi
       title={label}
       titleStyle={{ color: c.danger }}
       left={props => <List.Icon {...props} icon={ICONS.signOut} color={c.danger} />}
-      onPress={() => void press()}
+      onPress={press}
       accessibilityRole="button"
     />
   );

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Card, List, ProgressBar, Text } from 'react-native-paper';
+import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 import type { Palette } from '@danbro96/lupira-tokens-core/color';
 import { radii, spacing } from '@danbro96/lupira-tokens-core/spacing';
 import { changeCount, syncStatusLine, type ParkedChange, type ParkedChangeOp, type SyncViewStatus } from '../status.ts';
@@ -79,14 +80,17 @@ function ParkedCard({ row, label, onRetry, onDiscard }: {
   const confirm = useConfirm();
   const [expanded, setExpanded] = useState(false);
 
-  async function discard() {
-    const ok = await confirm({
+  function discard() {
+    confirm({
       title: 'Discard change',
       message: `Discard “${label}”? The local edit is undone and the server’s version is restored.`,
       confirmLabel: 'Discard',
       destructive: true,
-    });
-    if (ok) onDiscard(row.op.commandId);
+    })
+      .then(ok => {
+        if (ok) onDiscard(row.op.commandId);
+      })
+      .catch(() => toastError('Discard failed'));
   }
 
   return (
@@ -105,7 +109,7 @@ function ParkedCard({ row, label, onRetry, onDiscard }: {
       </Card.Content>
       <Card.Actions>
         <Button title="Retry" onPress={() => onRetry(row.op.commandId)} />
-        <Button title="Discard" variant="destructive" onPress={() => void discard()} />
+        <Button title="Discard" variant="destructive" onPress={discard} />
         <Button title={expanded ? 'Less' : 'Details'} variant="secondary" onPress={() => setExpanded(!expanded)} />
       </Card.Actions>
     </Card>
