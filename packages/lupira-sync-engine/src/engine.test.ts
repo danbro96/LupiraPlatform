@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { openNodeDb } from '@danbro96/lupira-expo-sqlite/node';
 import type { Db, Tx } from '@danbro96/lupira-expo-sqlite/types';
 import { cmd, create, createHarness, HttpError, page, retitle, serverNote, titleIndex } from '../test/harness.ts';
@@ -193,5 +193,35 @@ describe('status', () => {
     await engine.sync();
 
     expect(order).toEqual(['beforePush', 'push', 'pull', 'afterPull']);
+  });
+
+  it.each(['beforePush', 'afterPull'] as const)('reports a throwing %s hook under its own phase', async (hook) => {
+    const h = createHarness();
+    const onFailure = vi.fn();
+    const error = new Error('hook');
+    const engine = h.engine({ onFailure, hooks: { [hook]: async () => { throw error; } } });
+    h.feeds.note.script.push(page('1'));
+
+    await engine.sync();
+
+    expect(onFailure).toHaveBeenCalledExactlyOnceWith({ phase: hook, decision: expect.objectContaining({ outcome: 'park' }), error });
+    expect(engine.status.getSnapshot()).toMatchObject({ phase: 'idle', lastError: 'client error: Error: hook' });
+  });
+
+  it('reports a drain started by enqueue that fails outside a replay', async () => {
+    const db = openNodeDb();
+    let broken = false;
+    const error = new Error('disk I/O error');
+    const h = createHarness({ ...db, first: (sql, params) => (broken ? Promise.reject(error) : db.first(sql, params)) });
+    const onFailure = vi.fn();
+    const engine = h.engine({ onFailure });
+    h.replay = async () => {
+      broken = true;
+    };
+
+    await engine.enqueue(create(1, 'a'));
+
+    await vi.waitFor(() => expect(onFailure).toHaveBeenCalledExactlyOnceWith({ phase: 'push', decision: expect.objectContaining({ outcome: 'park' }), error }));
+    expect(engine.status.getSnapshot().lastError).toBe('disk I/O error');
   });
 });

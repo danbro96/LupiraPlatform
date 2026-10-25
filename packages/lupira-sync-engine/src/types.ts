@@ -55,8 +55,11 @@ export interface ChangeEvent {
   origin: ChangeOrigin;
 }
 
+/** Where a failure happened: a sync's steps in order (`open` = the database), or `push` for a replay or a drain. */
+export type SyncStep = 'open' | 'beforePush' | 'push' | 'pull' | 'afterPull';
+
 export interface SyncFailure {
-  phase: 'push' | 'pull';
+  phase: SyncStep;
   decision: ReplayDecision;
   error: unknown;
   aggregate?: string;

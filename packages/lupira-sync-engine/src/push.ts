@@ -11,6 +11,8 @@ import type { OpBase } from './types.ts';
 
 export interface Pusher {
   drain(kernel: Kernel): Promise<void>;
+  /** Fire-and-forget drain; a rejection outside a single replay lands in `status` and `onFailure`. */
+  kick(kernel: Kernel): void;
   /** Lifts the pause a 401 put on draining. */
   resume(): void;
 }
@@ -32,7 +34,7 @@ export function createPusher(exchange: Serial): Pusher {
     if (at === null) return;
     wake = setTimeout(() => {
       wake = null;
-      drain(kernel).catch((e: unknown) => kernel.status.set({ lastError: e instanceof Error ? e.message : String(e) }));
+      kick(kernel);
     }, at - kernel.now());
   }
 
@@ -69,8 +71,16 @@ export function createPusher(exchange: Serial): Pusher {
     return running;
   }
 
+  function kick(kernel: Kernel): void {
+    drain(kernel).catch((e: unknown) => {
+      kernel.status.set({ lastError: e instanceof Error ? e.message : String(e) });
+      kernel.onFailure?.({ phase: 'push', decision: classifyReplayError(e), error: e });
+    });
+  }
+
   return {
     drain,
+    kick,
     resume: () => {
       paused = false;
     },

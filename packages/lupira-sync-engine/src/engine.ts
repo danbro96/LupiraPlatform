@@ -13,7 +13,7 @@ import { dropCache, wipeAll } from './reset.ts';
 import { KERNEL_MIGRATIONS } from './schema.ts';
 import { createSerial } from './serial.ts';
 import { createStatusStore, type StatusStore, type StatusWriter } from './status.ts';
-import type { AggregateModule, ChangeEvent, DocState, OpBase, ParkedOp, SyncFailure } from './types.ts';
+import type { AggregateModule, ChangeEvent, DocState, OpBase, ParkedOp, SyncFailure, SyncStep } from './types.ts';
 
 export interface SyncHooks {
   beforePush?(): Promise<void>;
@@ -67,25 +67,26 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
       throw e;
     }));
 
-  const kick = (k: Kernel): void => {
-    pusher.drain(k).catch((e: unknown) => status.set({ lastError: messageOf(e) }));
-  };
-
   async function runSync(): Promise<void> {
+    let step: SyncStep = 'open';
     try {
       const k = await kernel();
       pusher.resume();
       status.set({ phase: 'push' });
+      step = 'beforePush';
       await options.hooks?.beforePush?.();
+      step = 'push';
       await pusher.drain(k);
       status.set({ phase: 'pull' });
+      step = 'pull';
       await pullAll(k, exchange);
+      step = 'afterPull';
       await options.hooks?.afterPull?.();
       status.set({ serverReachable: true, lastError: null, lastSyncAt: k.now() });
     } catch (e) {
       const decision = classifyReplayError(e);
       status.set({ lastError: describeFailure(decision), serverReachable: decision.outcome !== 'retry' });
-      options.onFailure?.({ phase: 'pull', decision, error: e });
+      options.onFailure?.({ phase: step, decision, error: e });
     } finally {
       status.set({ phase: 'idle', progress: null });
     }
@@ -114,7 +115,7 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
         }
       });
       await refreshCounts(k);
-      kick(k);
+      pusher.kick(k);
     },
 
     async discard(commandId) {
@@ -126,14 +127,14 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
         await recompute(tx, moduleFor(k, op.aggregate), op.aggregateId, changes);
       });
       await refreshCounts(k);
-      kick(k);
+      pusher.kick(k);
     },
 
     async retry(commandId) {
       const k = await kernel();
       await k.db.exclusive((tx) => requeue(tx, commandId));
       await refreshCounts(k);
-      kick(k);
+      pusher.kick(k);
     },
 
     async reindex(aggregate) {
@@ -158,8 +159,6 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
     status,
   };
 }
-
-const messageOf = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
 async function open(options: SyncEngineOptions, status: StatusWriter): Promise<Kernel> {
   const db = await options.openDb();

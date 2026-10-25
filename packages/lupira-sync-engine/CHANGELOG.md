@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+
+- **Breaking** `types`: `SyncFailure.phase` is a `SyncStep`: `'open' | 'beforePush' | 'push' | 'pull' | 'afterPull'`. A failed sync reports the step that threw (the database open, a hook, the drain or the pull).
+- A drain started by `enqueue`, `discard`, `retry` or the backoff timer that fails outside a single replay (e.g. a database error) reaches `onFailure` with phase `push`, besides `status.lastError`.
+
 ## 0.2.0
 
 - `engine`: `onFailure` option receives each failed replay and failed sync as a `SyncFailure` (`phase`, `decision`, `error`, `aggregate?`).
