@@ -62,7 +62,7 @@ function PinPicker({ start, geoBase, onCancel, onConfirm, onPinChange, initialPi
     changePin(initial ?? null);
     let disposed = false;
     let map: MapLibreMap | undefined;
-    void loadMapStyle(mapTheme, base).catch(() => fallbackStyle(mapTheme, base)).then((style) => {
+    loadMapStyle(mapTheme, base).catch(() => fallbackStyle(mapTheme, base)).then((style) => {
       if (disposed) return;
       const created = new MapLibreMap({
         container,
@@ -84,7 +84,7 @@ function PinPicker({ start, geoBase, onCancel, onConfirm, onPinChange, initialPi
         marker.setLngLat(e.lngLat).addTo(created);
         changePin({ lat: e.lngLat.lat, lon: e.lngLat.lng });
       });
-    });
+    }).catch(reportError);
     return () => {
       disposed = true;
       map?.remove();

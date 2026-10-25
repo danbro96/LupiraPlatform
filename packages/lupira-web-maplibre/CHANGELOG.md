@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- `MiniMap` and `MapPinDialog` route a failed map setup to `reportError`.
+
 ## 0.3.0
 
 - `MapPinDialog`: optional `initialPin` (marker placed on open, map centred on it at street zoom or closer) and `onPinChange(point | null)` (fired on open, on placing and after each drag).

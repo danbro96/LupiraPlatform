@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-web-maplibre",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "maplibre-gl setup for the Lupira SPAs: worker + pmtiles wiring, basemap style loading, MiniMap, MapPinDialog.",
   "license": "MIT",
   "type": "module",

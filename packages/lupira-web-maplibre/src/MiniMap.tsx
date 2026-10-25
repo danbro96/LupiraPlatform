@@ -36,7 +36,7 @@ export default function MiniMap({ point, spanM, width, height, geoBase }: {
   useEffect(() => {
     let disposed = false;
     let map: MapLibreMap | undefined;
-    void styleFor(theme, geoBase).then((style) => {
+    styleFor(theme, geoBase).then((style) => {
       if (disposed || !ref.current) return;
       map = new MapLibreMap({
         container: ref.current,
@@ -47,7 +47,7 @@ export default function MiniMap({ point, spanM, width, height, geoBase }: {
         attributionControl: false,
       });
       new Marker({ color: pin, scale: 0.6 }).setLngLat([point.lon, point.lat]).addTo(map);
-    });
+    }).catch(reportError);
     return () => {
       disposed = true;
       map?.remove();
