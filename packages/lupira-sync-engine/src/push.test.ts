@@ -85,6 +85,24 @@ describe('drain', () => {
     expect(await engine.parked()).toMatchObject([{ op: { commandId: cmd(1) }, lastStatus: 404, lastError: 'rejected (404)' }]);
   });
 
+  it('reports a rejected replay with the server detail in status, the parked op and onFailure', async () => {
+    const onFailure = vi.fn();
+    engine = h.engine({ onFailure });
+    const error = new HttpError(400, 'Title is required');
+    h.failures.set(cmd(1), error);
+    await engine.enqueue(create(1, 'a'));
+    await engine.push();
+
+    expect(onFailure).toHaveBeenCalledExactlyOnceWith({
+      phase: 'push',
+      decision: expect.objectContaining({ outcome: 'park', reason: 'rejected (400)', detail: 'Title is required' }),
+      error,
+      aggregate: 'note',
+    });
+    expect(engine.status.getSnapshot().lastError).toBe('rejected (400): Title is required');
+    expect(await engine.parked()).toMatchObject([{ lastStatus: 400, lastError: 'rejected (400): Title is required' }]);
+  });
+
   it('holds a backed-off op\'s aggregate while another proceeds, then replays both in order', async () => {
     h.failures.set(cmd(1), new HttpError(503));
     await engine.enqueue([create(1, 'a'), retitle(2, 'a', 'v2'), create(3, 'b')]);

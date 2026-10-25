@@ -1,6 +1,6 @@
 import type { Tx } from '@danbro96/lupira-expo-sqlite/types';
 import { nextAttemptDelayMs, PARK_AFTER_ATTEMPTS } from '@danbro96/lupira-sync-core/backoff';
-import { classifyReplayError, type ReplayDecision } from '@danbro96/lupira-sync-core/replayError';
+import { classifyReplayError, describeFailure, type ReplayDecision } from '@danbro96/lupira-sync-core/replayError';
 import { getCursor } from './cursorStore.ts';
 import { clearServer, getDoc, putServer } from './docStore.ts';
 import { commit, moduleFor, refreshCounts, type ChangeSet, type Kernel } from './kernel.ts';
@@ -85,7 +85,8 @@ async function replayOne(kernel: Kernel, row: OutboxRow): Promise<ReplayDecision
   } catch (e) {
     const decision = classifyReplayError(e);
     if (decision.outcome !== 'pause') await kernel.db.exclusive((tx) => markFailure(tx, row.seq, failureOf(kernel, row, decision, e)));
-    kernel.status.set({ lastError: decision.reason, ...(decision.outcome === 'retry' && { serverReachable: false }) });
+    kernel.status.set({ lastError: describeFailure(decision), ...(decision.outcome === 'retry' && { serverReachable: false }) });
+    kernel.onFailure?.({ phase: 'push', decision, error: e, aggregate: row.op.aggregate });
     return decision;
   }
   await commit(kernel, 'local', (tx, changes) => acknowledge(tx, kernel, row.op, changes));
@@ -112,7 +113,7 @@ function failureOf(kernel: Kernel, row: OutboxRow, decision: ReplayDecision, e: 
     attempts,
     nextAttemptAt: park ? 0 : kernel.now() + nextAttemptDelayMs(attempts),
     lastStatus: statusOf(e),
-    lastError: decision.reason,
+    lastError: describeFailure(decision),
   };
 }
 

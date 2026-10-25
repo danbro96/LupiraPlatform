@@ -1,7 +1,7 @@
 import type { Db, Tx } from '@danbro96/lupira-expo-sqlite/types';
 import { counts } from './outboxStore.ts';
 import type { StatusWriter } from './status.ts';
-import type { AggregateModule, ChangeEvent, ChangeOrigin } from './types.ts';
+import type { AggregateModule, ChangeEvent, ChangeOrigin, SyncFailure } from './types.ts';
 
 /** What every engine path runs against once the database is open and migrated. */
 export interface Kernel {
@@ -9,6 +9,7 @@ export interface Kernel {
   modules: AggregateModule[];
   now: () => number;
   onChange: (event: ChangeEvent) => void;
+  onFailure?: (failure: SyncFailure) => void;
   status: StatusWriter;
 }
 

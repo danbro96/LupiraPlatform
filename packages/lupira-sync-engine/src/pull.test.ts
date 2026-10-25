@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { cmd, create, createHarness, HttpError, page, retitle, serverNote, type Harness } from '../test/harness.ts';
 
 let h: Harness;
@@ -132,7 +132,7 @@ describe('full sync', () => {
       new HttpError(0),
     );
     await engine.sync();
-    expect(engine.status.getSnapshot()).toMatchObject({ lastError: 'HTTP 0', serverReachable: false });
+    expect(engine.status.getSnapshot()).toMatchObject({ lastError: 'transient (0)', serverReachable: false });
     expect(await titles()).toEqual(['A', 'O']);
 
     h.feeds.note.script.push(page('20', { changed: [serverNote('b', 'B')] }));
@@ -188,9 +188,24 @@ describe('failures', () => {
   it('never rejects: the error and reachability land in status', async () => {
     h.feeds.note.script.push(new HttpError(500));
     await expect(engine.sync()).resolves.toBeUndefined();
-    expect(engine.status.getSnapshot()).toMatchObject({ phase: 'idle', lastError: 'HTTP 500', serverReachable: false, lastSyncAt: null });
+    expect(engine.status.getSnapshot()).toMatchObject({ phase: 'idle', lastError: 'transient (500)', serverReachable: false, lastSyncAt: null });
 
     await engine.sync();
     expect(engine.status.getSnapshot()).toMatchObject({ lastError: null, serverReachable: true, lastSyncAt: h.clock });
+  });
+
+  it('reports a 401 as signed out and hands the failure to onFailure', async () => {
+    const onFailure = vi.fn();
+    engine = h.engine({ onFailure });
+    const error = new HttpError(401, 'Unauthorized');
+    h.feeds.note.script.push(error);
+    await engine.sync();
+
+    expect(engine.status.getSnapshot()).toMatchObject({ lastError: 'signed out', serverReachable: true });
+    expect(onFailure).toHaveBeenCalledExactlyOnceWith({
+      phase: 'pull',
+      decision: expect.objectContaining({ outcome: 'pause', reason: 'signed out' }),
+      error,
+    });
   });
 });

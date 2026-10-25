@@ -1,4 +1,5 @@
 import type { Tx } from '@danbro96/lupira-expo-sqlite/types';
+import type { ReplayDecision } from '@danbro96/lupira-sync-core/replayError';
 
 export interface OpBase {
   commandId: string;
@@ -52,6 +53,13 @@ export interface ChangeEvent {
   aggregate: string;
   ids: string[];
   origin: ChangeOrigin;
+}
+
+export interface SyncFailure {
+  phase: 'push' | 'pull';
+  decision: ReplayDecision;
+  error: unknown;
+  aggregate?: string;
 }
 
 export interface ParkedOp {

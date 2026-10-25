@@ -1,6 +1,6 @@
 import { migrate } from '@danbro96/lupira-expo-sqlite/migrate';
 import type { Db } from '@danbro96/lupira-expo-sqlite/types';
-import { classifyReplayError } from '@danbro96/lupira-sync-core/replayError';
+import { classifyReplayError, describeFailure } from '@danbro96/lupira-sync-core/replayError';
 import { getLocal, listLocal } from './docStore.ts';
 import { ensureIndex, rebuildIndex } from './indexes.ts';
 import { commit, moduleFor, refreshCounts, type Kernel } from './kernel.ts';
@@ -13,7 +13,7 @@ import { dropCache, wipeAll } from './reset.ts';
 import { KERNEL_MIGRATIONS } from './schema.ts';
 import { createSerial } from './serial.ts';
 import { createStatusStore, type StatusStore, type StatusWriter } from './status.ts';
-import type { AggregateModule, ChangeEvent, DocState, OpBase, ParkedOp } from './types.ts';
+import type { AggregateModule, ChangeEvent, DocState, OpBase, ParkedOp, SyncFailure } from './types.ts';
 
 export interface SyncHooks {
   beforePush?(): Promise<void>;
@@ -28,6 +28,7 @@ export interface SyncEngineOptions {
   cacheVersion: number;
   hooks?: SyncHooks;
   onChange: (event: ChangeEvent) => void;
+  onFailure?: (failure: SyncFailure) => void;
   now?: () => number;
 }
 
@@ -82,7 +83,9 @@ export function createSyncEngine(options: SyncEngineOptions): SyncEngine {
       await options.hooks?.afterPull?.();
       status.set({ serverReachable: true, lastError: null, lastSyncAt: k.now() });
     } catch (e) {
-      status.set({ lastError: messageOf(e), serverReachable: classifyReplayError(e).outcome !== 'retry' });
+      const decision = classifyReplayError(e);
+      status.set({ lastError: describeFailure(decision), serverReachable: decision.outcome !== 'retry' });
+      options.onFailure?.({ phase: 'pull', decision, error: e });
     } finally {
       status.set({ phase: 'idle', progress: null });
     }
@@ -161,7 +164,14 @@ const messageOf = (e: unknown): string => (e instanceof Error ? e.message : Stri
 async function open(options: SyncEngineOptions, status: StatusWriter): Promise<Kernel> {
   const db = await options.openDb();
   await migrate(db, KERNEL_MIGRATIONS);
-  const k: Kernel = { db, modules: options.modules, now: options.now ?? Date.now, onChange: options.onChange, status };
+  const k: Kernel = {
+    db,
+    modules: options.modules,
+    now: options.now ?? Date.now,
+    onChange: options.onChange,
+    onFailure: options.onFailure,
+    status,
+  };
   for (const module of options.modules) if (module.index) await ensureIndex(k, module);
   await commit(k, 'local', async (tx, changes) => {
     const stored = await getMeta(tx, CACHE_VERSION_KEY);

@@ -27,7 +27,9 @@ import { setAuthPort } from '@danbro96/lupira-http/authPort';
 import { defineSyncTask, startSyncTriggers } from './triggers.ts';
 
 let signIn: (() => void) | null = null;
+let signOut: (() => void) | null = null;
 const offSignIn = vi.fn();
+const offSignOut = vi.fn();
 setAuthPort({
   getApiUrl: () => '',
   getToken: () => null,
@@ -35,6 +37,10 @@ setAuthPort({
   onSignIn: (cb) => {
     signIn = cb;
     return offSignIn;
+  },
+  onSignOut: (cb) => {
+    signOut = cb;
+    return offSignOut;
   },
 });
 
@@ -67,6 +73,25 @@ describe('startSyncTriggers', () => {
     expect(rn.remove).toHaveBeenCalled();
     expect(net.unsubscribe).toHaveBeenCalled();
     expect(offSignIn).toHaveBeenCalled();
+    expect(offSignOut).toHaveBeenCalled();
+  });
+
+  it('removes the background task on sign-out and registers it again on sign-in', () => {
+    startSyncTriggers(engine, { backgroundTaskName: 'test-sync' });
+    task.register.mockClear();
+
+    signOut!();
+    expect(task.unregister).toHaveBeenCalledWith('test-sync');
+    expect(task.register).not.toHaveBeenCalled();
+
+    signIn!();
+    expect(task.register).toHaveBeenCalledWith('test-sync', { minimumInterval: 15 });
+  });
+
+  it('keeps the background task removed on sign-in when told not to register it', () => {
+    startSyncTriggers(engine, { backgroundTaskName: 'test-sync', registerBackgroundTask: false });
+    signIn!();
+    expect(task.register).not.toHaveBeenCalled();
   });
 
   it('removes the background task instead of registering it when told not to (development builds)', () => {
@@ -96,5 +121,11 @@ describe('defineSyncTask', () => {
     defineSyncTask('test-prepared', engine, async () => void order.push('prepare'));
     await task.defined.get('test-prepared')!();
     expect(order).toEqual(['prepare', 'sync']);
+  });
+
+  it('skips the sync when prepare resolves false', async () => {
+    defineSyncTask('test-signed-out', engine, async () => false);
+    expect(await task.defined.get('test-signed-out')!()).toBe(1);
+    expect(engine.sync).not.toHaveBeenCalled();
   });
 });

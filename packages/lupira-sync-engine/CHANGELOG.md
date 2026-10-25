@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0
+
+- `engine`: `onFailure` option receives each failed replay and failed sync as a `SyncFailure` (`phase`, `decision`, `error`, `aggregate?`).
+- `status.lastError` and a parked op's `lastError` carry `describeFailure` (reason plus server detail); a failed sync reports its classified reason (401 → `signed out`).
+- `expo/triggers`: `defineSyncTask`'s `prepare` may resolve `false` to skip the sync.
+- **Breaking** `expo/triggers`: `startSyncTriggers` subscribes to `AuthPort.onSignOut` and removes the background task on sign-out; sign-in registers it again. Requires `@danbro96/lupira-http` ^0.3.0.
+- Requires `@danbro96/lupira-sync-core` ^0.2.0.
+
 ## 0.1.2
 
 - Index rebuilds (on a `version` change at open, and `reindex`) drop and create the module's tables through `applySchema` on the main connection, then rewrite the docs in an exclusive transaction; reads no longer fail with `no such table` after a rebuild.

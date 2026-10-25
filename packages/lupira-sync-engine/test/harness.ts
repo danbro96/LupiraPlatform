@@ -17,8 +17,8 @@ const stamp = (n: number): SectionGuard => ({ ts: T(n), cmd: cmd(n) });
 export class HttpError extends Error {
   readonly status: number;
 
-  constructor(status: number) {
-    super(`HTTP ${status}`);
+  constructor(status: number, message = `HTTP ${status}`) {
+    super(message);
     this.status = status;
   }
 }
