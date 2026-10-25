@@ -288,6 +288,16 @@ describe('load', () => {
     expect(store.get('lupira.test.token')).toBe('tok-new');
   });
 
+  it('hydrates once, so a later load cannot restore a rotated-out refresh token', async () => {
+    persist('tok-old', Date.now() + 3_600_000);
+    const useAuth = make();
+    await useAuth.getState().load();
+    useAuth.setState({ token: 'tok-new', refreshToken: 'rt-2' });
+
+    await useAuth.getState().load();
+    expect(useAuth.getState()).toMatchObject({ token: 'tok-new', refreshToken: 'rt-2' });
+  });
+
   it('opens the hydration gate with the stored token when the refresh hangs, then applies it', async () => {
     vi.useFakeTimers();
     try {

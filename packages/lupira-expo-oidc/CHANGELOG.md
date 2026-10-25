@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.2
+
+- A refresh that returns after a sign-out or account switch is dropped instead of restoring the old session.
+- `load()` hydrates once; repeat calls share the first, so a background task can't restore a rotated-out refresh token from storage.
+
 ## 0.4.1
 
 - `load()` waits at most 3 s for a due token refresh; past that the app opens with the stored token and the refresh lands in the background.

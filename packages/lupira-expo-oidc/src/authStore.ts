@@ -113,9 +113,38 @@ export function createAuthStore<X extends object = object>(options: AuthStoreOpt
   const notifySignOut = () => signOutListeners.forEach((cb) => cb());
   // Outlives sign-out so a same-account re-login keeps the local data.
   let lastSub: string | null = null;
+  // Storage lags memory after a rotation, so a second hydration could restore a rotated-out refresh token.
+  let loading: Promise<void> | null = null;
 
   const useAuth = create<AuthStore & X>()((set, get, api) => {
     const setAuth = set as (partial: Partial<AuthState>) => void;
+    const hydrate = async () => {
+      const [apiUrl, authMode, userSub, userName, storedLastSub, session] = await Promise.all([
+        SecureStore.getItemAsync(keys.apiUrl),
+        SecureStore.getItemAsync(keys.authMode),
+        SecureStore.getItemAsync(keys.userSub),
+        SecureStore.getItemAsync(keys.userName),
+        SecureStore.getItemAsync(keys.lastSub),
+        sessionStore.load(),
+        options.onLoad?.(),
+      ]);
+      // An install signed in before lastSub existed adopts its account instead of announcing a change.
+      lastSub = storedLastSub ?? userSub;
+      setAuth({
+        apiUrl: apiUrl || defaultApiUrl,
+        // 'none' is the pre-rename value of 'dev'.
+        authMode: authMode === 'none' ? 'dev' : ((authMode as AuthMode | null) ?? defaultAuthMode),
+        token: session.token,
+        refreshToken: session.refreshToken,
+        expiresAt: session.expiresAt,
+        user: userSub ? { sub: userSub, name: userName || undefined } : null,
+      });
+      const refreshing = get()
+        .refreshIfNeeded()
+        .catch((e: unknown) => log('auth:refresh-error', message(e)));
+      await settleWithin(refreshing, LOAD_REFRESH_WAIT_MS);
+      setAuth({ loaded: true });
+    };
     const base: AuthStore = {
       loaded: false,
       apiUrl: defaultApiUrl,
@@ -125,32 +154,12 @@ export function createAuthStore<X extends object = object>(options: AuthStoreOpt
       expiresAt: 0,
       user: null,
 
-      async load() {
-        const [apiUrl, authMode, userSub, userName, storedLastSub, session] = await Promise.all([
-          SecureStore.getItemAsync(keys.apiUrl),
-          SecureStore.getItemAsync(keys.authMode),
-          SecureStore.getItemAsync(keys.userSub),
-          SecureStore.getItemAsync(keys.userName),
-          SecureStore.getItemAsync(keys.lastSub),
-          sessionStore.load(),
-          options.onLoad?.(),
-        ]);
-        // An install signed in before lastSub existed adopts its account instead of announcing a change.
-        lastSub = storedLastSub ?? userSub;
-        setAuth({
-          apiUrl: apiUrl || defaultApiUrl,
-          // 'none' is the pre-rename value of 'dev'.
-          authMode: authMode === 'none' ? 'dev' : ((authMode as AuthMode | null) ?? defaultAuthMode),
-          token: session.token,
-          refreshToken: session.refreshToken,
-          expiresAt: session.expiresAt,
-          user: userSub ? { sub: userSub, name: userName || undefined } : null,
+      load() {
+        loading ??= hydrate().catch((e: unknown) => {
+          loading = null;
+          throw e;
         });
-        const refreshing = get()
-          .refreshIfNeeded()
-          .catch((e: unknown) => log('auth:refresh-error', message(e)));
-        await settleWithin(refreshing, LOAD_REFRESH_WAIT_MS);
-        setAuth({ loaded: true });
+        return loading;
       },
 
       async setBackend(urls, authMode) {

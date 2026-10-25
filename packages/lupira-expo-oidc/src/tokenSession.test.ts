@@ -123,6 +123,32 @@ describe('createTokenRefresher', () => {
     expect(await refresh({ force: true })).toBe('tok-1');
   });
 
+  it('leaves a sign-out that landed during the refresh alone', async () => {
+    seed(10_000);
+    let release!: (v: TokenSet) => void;
+    refreshTokens.mockReturnValue(new Promise((r) => { release = r; }));
+
+    const pending = refresh();
+    session = { token: null, refreshToken: null, expiresAt: 0 };
+    release({ accessToken: 'tok-2', refreshToken: 'rt-2', expiresIn: 3600 });
+
+    expect(await pending).toBeNull();
+    expect(session.token).toBeNull();
+  });
+
+  it('does not sign out a newer session when the superseded refresh fails', async () => {
+    seed(10_000);
+    let fail!: (e: unknown) => void;
+    refreshTokens.mockReturnValue(new Promise((_, r) => { fail = r; }));
+
+    const pending = refresh();
+    session = { token: 'tok-b', refreshToken: 'rt-b', expiresAt: Date.now() + 3_600_000 };
+    fail(new RefreshError(true, 'invalid_grant'));
+
+    expect(await pending).toBe('tok-b');
+    expect(signOut).not.toHaveBeenCalled();
+  });
+
   it('sends nothing without a session', async () => {
     session = { token: null, refreshToken: null, expiresAt: 0 };
     expect(await refresh({ force: true })).toBeNull();

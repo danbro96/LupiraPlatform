@@ -73,14 +73,18 @@ export function createTokenRefresher({ read, refreshTokens, apply, signOut, marg
     }
 
     if (refreshing) return refreshing;
+    // A sign-out or account switch while the POST was out owns the session now; the late result must not touch it.
+    const superseded = () => read().refreshToken !== refreshToken;
     refreshing = (async () => {
       try {
         const t = await refreshTokens(refreshToken);
+        if (superseded()) return read().token;
         if (!t.accessToken) return token;
         await apply(t, refreshToken);
         log('auth', 'token refreshed');
         return read().token;
       } catch (e) {
+        if (superseded()) return read().token;
         if (e instanceof RefreshError && e.definitive) {
           log('auth', `definitive refresh failure — signing out (${e.message})`);
           onDefinitiveFailure?.(e);
