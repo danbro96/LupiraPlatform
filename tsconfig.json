@@ -24,6 +24,7 @@
     { "path": "packages/lupira-expo-sqlite" },
     { "path": "packages/lupira-sync-core" },
     { "path": "packages/lupira-sync-engine" },
-    { "path": "packages/lupira-expo-query" }
+    { "path": "packages/lupira-expo-query" },
+    { "path": "packages/lupira-expo-maplibre" }
   ]
 }
