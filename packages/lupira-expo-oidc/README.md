@@ -32,7 +32,7 @@ export const useGeoReady = () => useAuth((s) => s.authMode === 'dev' || hasAudie
 - `setSession(tokens)` derives `user` from the access token (`email` → `preferred_username` → `sub`).
 - `onAccountChange(prevSub, nextSub)` runs before the state flips, so `onSignIn` subscribers never see the previous account's data; `prevSub` is `null` on the first sign-in of an install.
 - `extend(set, get)` adds typed app state and actions; `onLoad` hydrates them before `loaded` flips. Apps with a wider port register `{ ...toAuthPort(useAuth.getState), ...extras }`.
-- `load()` refreshes a stored token that is due before `loaded` flips; a transient failure keeps it, a rejected refresh token signs out.
+- `load()` refreshes a stored token that is due before `loaded` flips, waiting at most 3 s (then it opens with the stored token and the refresh lands in the background); a transient failure keeps it, a rejected refresh token signs out.
 - `onSignOut(cb)` fires after every `clearSession` (sign-out, expiry, backend switch).
 - `startAutoRefresh()` (call once at startup) refreshes on foregrounding and `REFRESH_MARGIN_MS` before expiry; returns the stop.
 

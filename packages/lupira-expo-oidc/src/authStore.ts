@@ -63,6 +63,15 @@ export interface AuthStoreOptions<X extends object> {
   extend?(set: StoreApi<AuthStore & X>['setState'], get: () => AuthStore & X): X;
 }
 
+// A hanging network must not hold the app behind its hydration gate; the refresh finishes in the background.
+const LOAD_REFRESH_WAIT_MS = 3_000;
+
+async function settleWithin(work: Promise<unknown>, ms: number): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  await Promise.race([work, new Promise((resolve) => (timer = setTimeout(resolve, ms)))]);
+  clearTimeout(timer);
+}
+
 const claim = (claims: Record<string, unknown>, ...names: string[]): string | undefined =>
   names.map((n) => claims[n]).find((v): v is string => typeof v === 'string');
 
@@ -137,9 +146,10 @@ export function createAuthStore<X extends object = object>(options: AuthStoreOpt
           expiresAt: session.expiresAt,
           user: userSub ? { sub: userSub, name: userName || undefined } : null,
         });
-        await get()
+        const refreshing = get()
           .refreshIfNeeded()
           .catch((e: unknown) => log('auth:refresh-error', message(e)));
+        await settleWithin(refreshing, LOAD_REFRESH_WAIT_MS);
         setAuth({ loaded: true });
       },
 

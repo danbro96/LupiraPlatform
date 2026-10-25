@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+
+- `load()` waits at most 3 s for a due token refresh; past that the app opens with the stored token and the refresh lands in the background.
+
 ## 0.4.0
 
 - `oidc`: `getDiscovery` fetches `<issuer>/.well-known/openid-configuration` itself, bounded by `timeoutMs`; a failing status, empty body or non-JSON body rejects with the new `DiscoveryError` (status in the message). Trailing slashes on `issuer` are ignored. `OidcClient.clientId`.

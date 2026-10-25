@@ -288,6 +288,26 @@ describe('load', () => {
     expect(store.get('lupira.test.token')).toBe('tok-new');
   });
 
+  it('opens the hydration gate with the stored token when the refresh hangs, then applies it', async () => {
+    vi.useFakeTimers();
+    try {
+      persist('tok-old', Date.now() - 1000);
+      const useAuth = make();
+      const reply = deferred<TokenSet>();
+      refreshTokens.mockReturnValue(reply.promise);
+
+      const loading = useAuth.getState().load();
+      await vi.advanceTimersByTimeAsync(3_000);
+      await loading;
+      expect(useAuth.getState()).toMatchObject({ loaded: true, token: 'tok-old' });
+
+      reply.resolve({ accessToken: 'tok-new', refreshToken: 'rt-2', expiresIn: 3600 });
+      await vi.waitFor(() => expect(useAuth.getState().token).toBe('tok-new'));
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('keeps the stored token when the load-time refresh fails transiently', async () => {
     persist('tok-old', Date.now() - 1000);
     refreshTokens.mockRejectedValue(new RefreshError(false, '503'));
