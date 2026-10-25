@@ -1,34 +1,86 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const fetchDiscoveryAsync = vi.fn();
-vi.mock('expo-auth-session', () => ({ fetchDiscoveryAsync: (issuer: string) => fetchDiscoveryAsync(issuer) }));
-
-import { RefreshError, createOidcClient, decodeJwt, hasAudience } from './oidc.ts';
+import { DiscoveryError, RefreshError, createOidcClient, decodeJwt, hasAudience } from './oidc.ts';
 
 let fetchMock: ReturnType<typeof vi.fn>;
+let discoveryReplies: (() => Promise<Response>)[];
+let tokenReplies: (() => Promise<Response>)[];
 const log = vi.fn();
-const client = () => createOidcClient({ issuer: 'https://auth.test/app', clientId: 'app', timeoutMs: 5000, log });
+const client = () => createOidcClient({ issuer: 'https://auth.test/app/', clientId: 'app', timeoutMs: 5000, log });
+const discoveryUrl = 'https://auth.test/app/.well-known/openid-configuration';
 
 beforeEach(() => {
-  fetchDiscoveryAsync.mockReset().mockResolvedValue({ tokenEndpoint: 'https://auth.test/token' });
-  fetchMock = vi.fn();
+  discoveryReplies = [];
+  tokenReplies = [];
+  fetchMock = vi.fn((url: string) => {
+    if (url === discoveryUrl) return discoveryReplies.shift()?.() ?? Promise.resolve(new Response('{"token_endpoint":"https://auth.test/token"}'));
+    return tokenReplies.shift()?.() ?? Promise.reject(new Error(`unexpected fetch ${url}`));
+  });
   vi.stubGlobal('fetch', fetchMock);
   log.mockClear();
 });
 
 afterEach(() => vi.unstubAllGlobals());
 
-const reply = (status: number, body: string) => fetchMock.mockResolvedValueOnce(new Response(body, { status }));
-const form = (call: number) => new URLSearchParams(fetchMock.mock.calls[call][1].body as string);
+const reply = (status: number, body: string) => tokenReplies.push(() => Promise.resolve(new Response(body, { status })));
+const discoveryReply = (status: number, body: string) => discoveryReplies.push(() => Promise.resolve(new Response(body, { status })));
+const tokenCalls = () => fetchMock.mock.calls.filter(([url]) => url !== discoveryUrl);
+const discoveryCalls = () => fetchMock.mock.calls.filter(([url]) => url === discoveryUrl);
+const form = (call: number) => new URLSearchParams(tokenCalls()[call][1].body as string);
+
+describe('getDiscovery', () => {
+  it('maps the provider metadata like expo-auth-session does', async () => {
+    const metadata = {
+      issuer: 'https://auth.test/app/',
+      authorization_endpoint: 'https://auth.test/authorize',
+      token_endpoint: 'https://auth.test/token',
+      revocation_endpoint: 'https://auth.test/revoke',
+      userinfo_endpoint: 'https://auth.test/userinfo',
+      end_session_endpoint: 'https://auth.test/end',
+      registration_endpoint: 'https://auth.test/register',
+    };
+    discoveryReply(200, JSON.stringify(metadata));
+    expect(await client().getDiscovery()).toEqual({
+      discoveryDocument: metadata,
+      authorizationEndpoint: 'https://auth.test/authorize',
+      tokenEndpoint: 'https://auth.test/token',
+      revocationEndpoint: 'https://auth.test/revoke',
+      userInfoEndpoint: 'https://auth.test/userinfo',
+      endSessionEndpoint: 'https://auth.test/end',
+      registrationEndpoint: 'https://auth.test/register',
+    });
+      });
+
+  it.each([
+    ['an empty body', 200, '', 'discovery 200: empty body'],
+    ['a failing status', 503, 'down', 'discovery 503: down'],
+    ['a body that is not JSON', 200, '<html>', 'discovery 200: not a JSON object'],
+    ['JSON that is not an object', 200, 'null', 'discovery 200: not a JSON object'],
+  ])('rejects %s with a DiscoveryError', async (_, status, body, msg) => {
+    discoveryReply(status, body);
+    const err = await client().getDiscovery().catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(DiscoveryError);
+    expect((err as Error).message).toContain(msg);
+  });
+
+  it('refetches after a failure and memoises a success', async () => {
+    const c = client();
+    discoveryReply(200, '');
+    await expect(c.getDiscovery()).rejects.toBeInstanceOf(DiscoveryError);
+    expect(await c.getDiscovery()).toMatchObject({ tokenEndpoint: 'https://auth.test/token' });
+    await c.getDiscovery();
+    expect(discoveryCalls()).toHaveLength(2);
+  });
+});
 
 describe('exchangeAuthCode', () => {
   it('posts the PKCE form to the discovered endpoint and maps the token set', async () => {
     reply(200, '{"access_token":"a","refresh_token":"r","id_token":"i","expires_in":300}');
     const t = await client().exchangeAuthCode({ code: 'c', redirectUri: 'app://cb', codeVerifier: 'v' });
     expect(t).toEqual({ accessToken: 'a', refreshToken: 'r', idToken: 'i', expiresIn: 300 });
-    expect(fetchMock.mock.calls[0][0]).toBe('https://auth.test/token');
+    expect(tokenCalls()[0][0]).toBe('https://auth.test/token');
     expect(Object.fromEntries(form(0))).toEqual({ grant_type: 'authorization_code', code: 'c', redirect_uri: 'app://cb', client_id: 'app', code_verifier: 'v' });
-    expect(fetchDiscoveryAsync).toHaveBeenCalledWith('https://auth.test/app');
+    expect(discoveryCalls()).toHaveLength(1);
   });
 
   it('surfaces a failing status with its body and never logs a successful body', async () => {
@@ -53,18 +105,19 @@ describe('refreshTokens', () => {
     await expect(c.refreshTokens('r')).rejects.toMatchObject({ definitive: true });
     reply(503, '');
     await expect(c.refreshTokens('r')).rejects.toMatchObject({ definitive: false });
-    fetchMock.mockRejectedValueOnce(new TypeError('offline'));
+    tokenReplies.push(() => Promise.reject(new TypeError('offline')));
     await expect(c.refreshTokens('r')).rejects.toMatchObject({ definitive: false });
   });
 
   it('does not cache a failed discovery', async () => {
     const c = client();
-    fetchDiscoveryAsync.mockRejectedValueOnce(new Error('blip'));
+    discoveryReplies.push(() => Promise.reject(new TypeError('blip')));
     const err = await c.refreshTokens('r').catch((e: unknown) => e);
+    expect(err).toMatchObject({ definitive: false });
     expect(err).toBeInstanceOf(RefreshError);
     reply(200, '{"access_token":"a"}');
     expect(await c.refreshTokens('r')).toMatchObject({ accessToken: 'a' });
-    expect(fetchDiscoveryAsync).toHaveBeenCalledTimes(2);
+    expect(discoveryCalls()).toHaveLength(2);
   });
 });
 

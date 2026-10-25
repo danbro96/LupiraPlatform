@@ -42,10 +42,12 @@ export interface TokenRefresherOptions {
   onDefinitiveFailure?: (e: RefreshError) => void;
 }
 
+export const REFRESH_MARGIN_MS = 60_000;
+
 export type RefreshIfNeeded = (opts?: { force?: boolean; sentToken?: string }) => Promise<string | null>;
 
 /** Coalesced, rotation-safe refresh. */
-export function createTokenRefresher({ read, refreshTokens, apply, signOut, marginMs = 60_000, log = () => {}, onDefinitiveFailure }: TokenRefresherOptions): RefreshIfNeeded {
+export function createTokenRefresher({ read, refreshTokens, apply, signOut, marginMs = REFRESH_MARGIN_MS, log = () => {}, onDefinitiveFailure }: TokenRefresherOptions): RefreshIfNeeded {
   // Single-flight: the first refresher owns the POST, concurrent callers await the same promise. With
   // Authentik refresh-token rotation, a second concurrent POST replays an already-rotated token and the
   // provider treats it as theft — forced logout.

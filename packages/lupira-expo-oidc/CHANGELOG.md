@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0
+
+- `oidc`: `getDiscovery` fetches `<issuer>/.well-known/openid-configuration` itself, bounded by `timeoutMs`; a failing status, empty body or non-JSON body rejects with the new `DiscoveryError` (status in the message). Trailing slashes on `issuer` are ignored. `OidcClient.clientId`.
+- `useOidcLogin({ oidc, scopes, scheme, path, onTokens, log? })` → `{ status, error, retry, signIn, redirectUri }`: discovery, PKCE prompt and code exchange for a login screen. Pure state and sign-in steps in `oidcLogin`.
+- `authStore`: `load()` refreshes a due stored token before `loaded` flips; `onSignOut(cb)` fires after every `clearSession` and is on the AuthPort; `startAutoRefresh()` refreshes on foregrounding and just before expiry, returns the stop.
+- `tokenSession`: `REFRESH_MARGIN_MS`.
+- Peers: `@danbro96/lupira-http` `^0.3.0`; new `react`, `react-native`. Ships precompiled by React Compiler.
+
 ## 0.3.0
 
 - `authStore`: `createAuthStore({ keyPrefix, defaultApiUrl, defaultAuthMode, oidc, ... })` → a zustand store with `load`, `setBackend`, `setSession`, `clearSession`, `refreshIfNeeded`, `isAuthenticated`, `onSignIn`; registers itself as the lupira-http AuthPort.

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const store = new Map<string, string>();
 const failWrites = { on: false };
@@ -14,7 +14,22 @@ vi.mock('expo-secure-store', () => ({
     return Promise.resolve();
   }),
 }));
-vi.mock('expo-auth-session', () => ({ fetchDiscoveryAsync: vi.fn() }));
+const appState = vi.hoisted(() => ({ current: 'active', listeners: new Set<(s: string) => void>() }));
+vi.mock('react-native', () => ({
+  AppState: {
+    get currentState() {
+      return appState.current;
+    },
+    addEventListener: (_: 'change', cb: (s: string) => void) => {
+      appState.listeners.add(cb);
+      return { remove: () => appState.listeners.delete(cb) };
+    },
+  },
+}));
+const moveTo = (state: string) => {
+  appState.current = state;
+  appState.listeners.forEach((cb) => cb(state));
+};
 
 import { authPort } from '@danbro96/lupira-http/authPort';
 import { createAuthStore, type AuthStoreOptions } from './authStore.ts';
@@ -52,7 +67,18 @@ beforeEach(() => {
   store.clear();
   failWrites.on = false;
   refreshTokens.mockReset();
+  appState.current = 'active';
+  appState.listeners.clear();
 });
+
+afterEach(() => vi.useRealTimers());
+
+function persist(token: string, expiresAt: number) {
+  store.set('lupira.test.token', token);
+  store.set('lupira.test.refreshToken', 'rt-1');
+  store.set('lupira.test.expiresAt', String(expiresAt));
+  store.set('lupira.test.userSub', 'user@test');
+}
 
 describe('refreshIfNeeded', () => {
   it('stands pat on a fresh token', async () => {
@@ -246,6 +272,47 @@ describe('load', () => {
     expect(useAuth.getState().authMode).toBe('dev');
   });
 
+  it('refreshes an expired stored token before opening the hydration gate', async () => {
+    persist('tok-old', Date.now() - 1000);
+    const useAuth = make();
+    const reply = deferred<TokenSet>();
+    refreshTokens.mockReturnValue(reply.promise);
+
+    const loading = useAuth.getState().load();
+    await vi.waitFor(() => expect(refreshTokens).toHaveBeenCalledWith('rt-1'));
+    expect(useAuth.getState().loaded).toBe(false);
+    reply.resolve({ accessToken: 'tok-new', refreshToken: 'rt-2', expiresIn: 3600 });
+    await loading;
+
+    expect(useAuth.getState()).toMatchObject({ loaded: true, token: 'tok-new', refreshToken: 'rt-2' });
+    expect(store.get('lupira.test.token')).toBe('tok-new');
+  });
+
+  it('keeps the stored token when the load-time refresh fails transiently', async () => {
+    persist('tok-old', Date.now() - 1000);
+    refreshTokens.mockRejectedValue(new RefreshError(false, '503'));
+    const useAuth = make();
+    await useAuth.getState().load();
+    expect(useAuth.getState()).toMatchObject({ loaded: true, token: 'tok-old', user: { sub: 'user@test' } });
+  });
+
+  it('signs out when the load-time refresh is rejected for good', async () => {
+    persist('tok-old', Date.now() - 1000);
+    refreshTokens.mockRejectedValue(new RefreshError(true, 'invalid_grant'));
+    const useAuth = make();
+    await useAuth.getState().load();
+    expect(useAuth.getState()).toMatchObject({ loaded: true, token: null, user: null });
+  });
+
+  it('does not refresh a fresh stored token or in dev mode', async () => {
+    persist('tok-1', Date.now() + 3_600_000);
+    await make().getState().load();
+    store.set('lupira.test.authMode', 'dev');
+    store.set('lupira.test.expiresAt', String(Date.now() - 1000));
+    await make().getState().load();
+    expect(refreshTokens).not.toHaveBeenCalled();
+  });
+
   it('awaits onLoad before opening the hydration gate', async () => {
     const hydrated = deferred<void>();
     const useAuth = make({ onLoad: () => hydrated.promise });
@@ -296,6 +363,77 @@ describe('onSignIn', () => {
     off();
     await useAuth.getState().setBackend({ api: 'http://dev.test' }, 'dev');
     expect(cb).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('onSignOut', () => {
+  it('fires after every clearSession until unsubscribed', async () => {
+    const useAuth = make();
+    const seen: (string | null)[] = [];
+    const off = useAuth.getState().onSignOut(() => seen.push(useAuth.getState().token));
+    seed(useAuth, 3_600_000);
+
+    await useAuth.getState().clearSession();
+    seed(useAuth, 10_000);
+    refreshTokens.mockRejectedValue(new RefreshError(true, 'invalid_grant'));
+    await useAuth.getState().refreshIfNeeded();
+    expect(seen).toEqual([null, null]);
+
+    off();
+    await useAuth.getState().clearSession();
+    expect(seen).toHaveLength(2);
+  });
+});
+
+describe('startAutoRefresh', () => {
+  const tokens: TokenSet = { accessToken: 'tok-2', refreshToken: 'rt-2', expiresIn: 3600 };
+
+  it('refreshes once the token is within the margin and re-arms on the new expiry', async () => {
+    vi.useFakeTimers();
+    const useAuth = make();
+    seed(useAuth, 120_000);
+    refreshTokens.mockResolvedValue(tokens);
+    const stop = useAuth.getState().startAutoRefresh();
+
+    await vi.advanceTimersByTimeAsync(59_000);
+    expect(refreshTokens).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(refreshTokens).toHaveBeenCalledOnce();
+    expect(useAuth.getState().token).toBe('tok-2');
+
+    await vi.advanceTimersByTimeAsync(3_540_000);
+    expect(refreshTokens).toHaveBeenCalledTimes(2);
+    stop();
+  });
+
+  it('pauses in the background and refreshes a due token on returning to the foreground', async () => {
+    vi.useFakeTimers();
+    const useAuth = make();
+    seed(useAuth, 120_000);
+    refreshTokens.mockResolvedValue(tokens);
+    const stop = useAuth.getState().startAutoRefresh();
+
+    moveTo('background');
+    await vi.advanceTimersByTimeAsync(120_000);
+    expect(refreshTokens).not.toHaveBeenCalled();
+
+    moveTo('active');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(refreshTokens).toHaveBeenCalledOnce();
+    stop();
+  });
+
+  it('stops the timer and the app-state listener', async () => {
+    vi.useFakeTimers();
+    const useAuth = make();
+    seed(useAuth, 120_000);
+    const stop = useAuth.getState().startAutoRefresh();
+    stop();
+
+    expect(appState.listeners.size).toBe(0);
+    moveTo('active');
+    await vi.advanceTimersByTimeAsync(3_600_000);
+    expect(refreshTokens).not.toHaveBeenCalled();
   });
 });
 
@@ -376,5 +514,15 @@ describe('AuthPort', () => {
 
     useAuth.setState({ authMode: 'dev' });
     expect(authPort().getToken()).toBeNull();
+  });
+
+  it('relays sign-outs through the port', async () => {
+    const useAuth = make();
+    const cb = vi.fn();
+    const off = authPort().onSignOut(cb);
+    await useAuth.getState().clearSession();
+    off();
+    await useAuth.getState().clearSession();
+    expect(cb).toHaveBeenCalledOnce();
   });
 });

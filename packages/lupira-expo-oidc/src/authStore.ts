@@ -1,8 +1,9 @@
 import { setAuthPort, type AuthPort } from '@danbro96/lupira-http/authPort';
 import * as SecureStore from 'expo-secure-store';
+import { AppState } from 'react-native';
 import { create, type StoreApi, type UseBoundStore } from 'zustand';
 import { decodeJwt, type OidcClient, type RefreshError, type TokenSet } from './oidc.ts';
-import { createTokenRefresher, secureSessionStore } from './tokenSession.ts';
+import { REFRESH_MARGIN_MS, createTokenRefresher, secureSessionStore } from './tokenSession.ts';
 
 export type AuthMode = 'oidc' | 'dev';
 
@@ -13,7 +14,7 @@ export interface AuthUser {
 }
 
 export interface AuthState {
-  /** Hydration gate: the app renders nothing until the persisted session is loaded. */
+  /** Hydration gate: the app renders nothing until the persisted session is loaded and, if due, refreshed. */
   loaded: boolean;
   apiUrl: string;
   authMode: AuthMode;
@@ -35,6 +36,10 @@ export interface AuthActions {
   isAuthenticated(): boolean;
   /** Fires on a sign-in and on switching to the dev backend; returns the unsubscribe. */
   onSignIn(cb: () => void): () => void;
+  /** Fires after every `clearSession`, whatever the reason; returns the unsubscribe. */
+  onSignOut(cb: () => void): () => void;
+  /** Refreshes on foregrounding and just before expiry while active; returns the stop. */
+  startAutoRefresh(): () => void;
 }
 
 export type AuthStore = AuthState & AuthActions;
@@ -76,6 +81,7 @@ export function toAuthPort(getState: () => AuthStore): AuthPort {
     getToken: () => (getState().authMode === 'dev' ? null : getState().token),
     refresh: (force, sentToken) => getState().refreshIfNeeded({ force, sentToken }),
     onSignIn: (cb) => getState().onSignIn(cb),
+    onSignOut: (cb) => getState().onSignOut(cb),
   };
 }
 
@@ -94,10 +100,12 @@ export function createAuthStore<X extends object = object>(options: AuthStoreOpt
     value ? SecureStore.setItemAsync(key, value) : SecureStore.deleteItemAsync(key);
   const signInListeners = new Set<() => void>();
   const notifySignIn = () => signInListeners.forEach((cb) => cb());
+  const signOutListeners = new Set<() => void>();
+  const notifySignOut = () => signOutListeners.forEach((cb) => cb());
   // Outlives sign-out so a same-account re-login keeps the local data.
   let lastSub: string | null = null;
 
-  const useAuth = create<AuthStore & X>()((set, get) => {
+  const useAuth = create<AuthStore & X>()((set, get, api) => {
     const setAuth = set as (partial: Partial<AuthState>) => void;
     const base: AuthStore = {
       loaded: false,
@@ -121,7 +129,6 @@ export function createAuthStore<X extends object = object>(options: AuthStoreOpt
         // An install signed in before lastSub existed adopts its account instead of announcing a change.
         lastSub = storedLastSub ?? userSub;
         setAuth({
-          loaded: true,
           apiUrl: apiUrl || defaultApiUrl,
           // 'none' is the pre-rename value of 'dev'.
           authMode: authMode === 'none' ? 'dev' : ((authMode as AuthMode | null) ?? defaultAuthMode),
@@ -130,6 +137,10 @@ export function createAuthStore<X extends object = object>(options: AuthStoreOpt
           expiresAt: session.expiresAt,
           user: userSub ? { sub: userSub, name: userName || undefined } : null,
         });
+        await get()
+          .refreshIfNeeded()
+          .catch((e: unknown) => log('auth:refresh-error', message(e)));
+        setAuth({ loaded: true });
       },
 
       async setBackend(urls, authMode) {
@@ -168,7 +179,11 @@ export function createAuthStore<X extends object = object>(options: AuthStoreOpt
       async clearSession(opts) {
         await options.beforeSignOut?.(opts?.reason);
         setAuth({ token: null, refreshToken: null, expiresAt: 0, user: null });
-        await Promise.all([sessionStore.clear(), SecureStore.deleteItemAsync(keys.userSub), SecureStore.deleteItemAsync(keys.userName)]);
+        try {
+          await Promise.all([sessionStore.clear(), SecureStore.deleteItemAsync(keys.userSub), SecureStore.deleteItemAsync(keys.userName)]);
+        } finally {
+          notifySignOut();
+        }
       },
 
       refreshIfNeeded(opts) {
@@ -183,6 +198,40 @@ export function createAuthStore<X extends object = object>(options: AuthStoreOpt
       onSignIn(cb) {
         signInListeners.add(cb);
         return () => signInListeners.delete(cb);
+      },
+
+      onSignOut(cb) {
+        signOutListeners.add(cb);
+        return () => signOutListeners.delete(cb);
+      },
+
+      startAutoRefresh() {
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        // iOS can report 'unknown' before the first change event, so only 'background' counts as inactive.
+        let foreground = AppState.currentState !== 'background';
+        const refreshNow = () => {
+          get()
+            .refreshIfNeeded()
+            .catch((e: unknown) => log('auth:refresh-error', message(e)));
+        };
+        const arm = () => {
+          clearTimeout(timer);
+          const { token, expiresAt } = get();
+          if (foreground && token) timer = setTimeout(refreshNow, Math.max(0, expiresAt - REFRESH_MARGIN_MS - Date.now()));
+        };
+        const appState = AppState.addEventListener('change', (next) => {
+          foreground = next !== 'background';
+          arm();
+        });
+        const unsubscribe = api.subscribe((s, prev) => {
+          if (s.expiresAt !== prev.expiresAt || s.token !== prev.token) arm();
+        });
+        arm();
+        return () => {
+          appState.remove();
+          unsubscribe();
+          clearTimeout(timer);
+        };
       },
     };
     return { ...base, ...(options.extend?.(set, get) as X) };

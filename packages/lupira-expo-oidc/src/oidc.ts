@@ -1,4 +1,4 @@
-import * as AuthSession from 'expo-auth-session';
+import type * as AuthSession from 'expo-auth-session';
 
 export interface TokenSet {
   accessToken: string;
@@ -22,6 +22,13 @@ export class RefreshError extends Error {
   }
 }
 
+export class DiscoveryError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'DiscoveryError';
+  }
+}
+
 export interface OidcClientOptions {
   issuer: string;
   clientId: string;
@@ -30,6 +37,7 @@ export interface OidcClientOptions {
 }
 
 export interface OidcClient {
+  readonly clientId: string;
   getDiscovery(): Promise<AuthSession.DiscoveryDocument>;
   exchangeAuthCode(params: { code: string; redirectUri: string; codeVerifier?: string; tokenEndpoint?: string }): Promise<TokenSet>;
   refreshTokens(refreshToken: string): Promise<TokenSet>;
@@ -44,25 +52,54 @@ function toTokenSet(text: string): TokenSet {
 
 /** Non-hook OIDC helpers (the interactive login itself stays with expo-auth-session's useAuthRequest). */
 export function createOidcClient({ issuer, clientId, timeoutMs, log = () => {} }: OidcClientOptions): OidcClient {
+  async function fetchText(endpoint: string, init: RequestInit): Promise<{ status: number; text: string }> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(endpoint, { ...init, signal: controller.signal });
+      return { status: res.status, text: await res.text() };
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   /**
    * POST an `application/x-www-form-urlencoded` body to a token endpoint with a bounded timeout.
    * Returns the raw `{ status, text }` for any HTTP response (so callers branch on status);
    * throws only on a transport failure (network down / timeout / connection dropped mid-body).
    */
-  async function postForm(endpoint: string, params: Record<string, string>): Promise<{ status: number; text: string }> {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
+  function postForm(endpoint: string, params: Record<string, string>): Promise<{ status: number; text: string }> {
+    return fetchText(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
+      body: new URLSearchParams(params).toString(),
+    });
+  }
+
+  // expo's fetchDiscoveryAsync calls response.json() on whatever comes back, so an empty body surfaces as "JSON Parse error".
+  async function fetchDiscovery(): Promise<AuthSession.DiscoveryDocument> {
+    const url = `${issuer.replace(/\/+$/, '')}/.well-known/openid-configuration`;
+    const { status, text } = await fetchText(url, { headers: { Accept: 'application/json' } });
+    log('discovery:response', `status=${status} len=${text.length}`);
+    if (status < 200 || status >= 300) throw new DiscoveryError(`discovery ${status}: ${text.slice(0, 200)}`);
+    if (!text) throw new DiscoveryError(`discovery ${status}: empty body`);
+    let json: unknown;
     try {
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
-        body: new URLSearchParams(params).toString(),
-        signal: controller.signal,
-      });
-      return { status: res.status, text: await res.text() };
-    } finally {
-      clearTimeout(timer);
+      json = JSON.parse(text);
+    } catch {
+      json = null;
     }
+    if (typeof json !== 'object' || json === null) throw new DiscoveryError(`discovery ${status}: not a JSON object: ${text.slice(0, 200)}`);
+    const doc = json as AuthSession.ProviderMetadata;
+    return {
+      discoveryDocument: doc,
+      authorizationEndpoint: doc.authorization_endpoint,
+      tokenEndpoint: doc.token_endpoint,
+      revocationEndpoint: doc.revocation_endpoint,
+      userInfoEndpoint: doc.userinfo_endpoint,
+      endSessionEndpoint: doc.end_session_endpoint,
+      registrationEndpoint: doc.registration_endpoint,
+    };
   }
 
   let discoveryPromise: Promise<AuthSession.DiscoveryDocument> | null = null;
@@ -70,7 +107,7 @@ export function createOidcClient({ issuer, clientId, timeoutMs, log = () => {} }
   function getDiscovery(): Promise<AuthSession.DiscoveryDocument> {
     // Don't cache a failure: a single failed discovery (e.g. a launch-time network blip) must
     // not poison the cache for the whole session — null it out so the next call retries.
-    discoveryPromise ??= AuthSession.fetchDiscoveryAsync(issuer).catch((e: unknown) => {
+    discoveryPromise ??= fetchDiscovery().catch((e: unknown) => {
       discoveryPromise = null;
       throw e;
     });
@@ -142,7 +179,7 @@ export function createOidcClient({ issuer, clientId, timeoutMs, log = () => {} }
     return toTokenSet(text);
   }
 
-  return { getDiscovery, exchangeAuthCode, refreshTokens };
+  return { clientId, getDiscovery, exchangeAuthCode, refreshTokens };
 }
 
 /** Decode a JWT payload (no signature check — the server verifies; this is for claims only). */
