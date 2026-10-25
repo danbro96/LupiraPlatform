@@ -13,9 +13,10 @@ export interface BearerMutatorOptions {
 }
 
 /** Orval custom mutator. Resolves to the parsed body (204 → undefined) and throws ApiError otherwise. Injects
- *  the bearer (none while the port has no token), bounds every attempt with a timeout, retries transient failures
- *  of reads per retryPolicy, and on a 401 for any method forces ONE coalesced refresh — if that actually rotated
- *  the token, the retry budget resets and the call replays (the server rejected it before executing). */
+ *  the bearer (refreshed first when near expiry; none while the port has no token), bounds every attempt with a
+ *  timeout, retries transient failures of reads per retryPolicy, and on a 401 for any method forces ONE coalesced
+ *  refresh — if that actually rotated the token, the retry budget resets and the call replays (the server rejected
+ *  it before executing). */
 export function createBearerMutator(options: BearerMutatorOptions): ApiMutator {
   const { timeoutMs, retry, decorate } = options;
   const maxRetries = retry === false ? 0 : (retry?.maxRetries ?? MAX_RETRIES);
@@ -35,7 +36,7 @@ export function createBearerMutator(options: BearerMutatorOptions): ApiMutator {
       headers.set('Content-Type', 'application/json');
 
     const retriable = isRetriableRequest(init?.method);
-    let token = auth.getToken();
+    let token = await auth.refresh(false);
     let triedReauth = false;
 
     for (let attempt = 0; ; attempt++) {

@@ -7,12 +7,18 @@ type FetchCall = { url: string; headers: Headers };
 let calls: FetchCall[];
 let responses: Array<() => Response>;
 
+const session = (current: string | null, rotated: string | null = current) =>
+  vi.fn(async (force?: boolean, _sentToken?: string) => (force ? rotated : current));
+
+const forcedRefreshes = (refresh: ReturnType<typeof session>) => refresh.mock.calls.filter(([force]) => force).length;
+
 function stubPort(overrides: Partial<AuthPort> = {}): AuthPort {
   const port: AuthPort = {
     getApiUrl: () => 'https://bff.test',
     getToken: () => 'tok-1',
-    refresh: vi.fn(async () => 'tok-1'),
+    refresh: session('tok-1'),
     onSignIn: () => () => {},
+    onSignOut: () => () => {},
     ...overrides,
   };
   setAuthPort(port);
@@ -64,7 +70,7 @@ describe('createBearerMutator', () => {
   });
 
   it('takes an explicit base URL and a header decorator', async () => {
-    stubPort({ getToken: () => null });
+    stubPort({ refresh: session(null) });
     responses.push(json(200));
     await run(mutator({ baseUrl: () => 'https://other.test/', decorate: (h) => h.set('X-Dev-User', 'dev') })('/me'));
     expect(calls[0].url).toBe('https://other.test/me');
@@ -72,7 +78,7 @@ describe('createBearerMutator', () => {
   });
 
   it('sends no Authorization header in dev auto-auth mode', async () => {
-    stubPort({ getToken: () => null });
+    stubPort({ refresh: session(null) });
     responses.push(json(200));
     await run(mutator()('/api/me'));
     expect(calls[0].headers.has('Authorization')).toBe(false);
@@ -85,6 +91,36 @@ describe('createBearerMutator', () => {
     await run(mutator()('/api/photos', { method: 'POST', body: new FormData() }));
     expect(calls[0].headers.get('Content-Type')).toBe('application/json');
     expect(calls[1].headers.get('Content-Type')).not.toBe('application/json');
+  });
+
+  it('refreshes a token near expiry before the first request and sends the refreshed one', async () => {
+    const order: string[] = [];
+    const refresh = vi.fn(async (force?: boolean) => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      order.push(`refresh(${force})`);
+      return force ? 'tok-3' : 'tok-2';
+    });
+    stubPort({ getToken: () => 'tok-expired', refresh });
+    responses.push(() => {
+      order.push('fetch');
+      return new Response('{}', { status: 200 });
+    });
+
+    await run(mutator()('/api/me'));
+    expect(order).toEqual(['refresh(false)', 'fetch']);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].headers.get('Authorization')).toBe('Bearer tok-2');
+  });
+
+  it('sends a fresh token as is: one request, no forced refresh', async () => {
+    const refresh = session('tok-1', 'tok-2');
+    stubPort({ refresh });
+    responses.push(json(200));
+
+    await run(mutator()('/api/me'));
+    expect(calls).toHaveLength(1);
+    expect(refresh).toHaveBeenCalledExactlyOnceWith(false);
+    expect(calls[0].headers.get('Authorization')).toBe('Bearer tok-1');
   });
 
   it('retries a transient 503 on reads and then succeeds', async () => {
@@ -121,7 +157,7 @@ describe('createBearerMutator', () => {
   });
 
   it('forces one refresh on 401 and replays with the rotated token', async () => {
-    const refresh = vi.fn(async () => 'tok-2');
+    const refresh = session('tok-1', 'tok-2');
     stubPort({ refresh });
     responses.push(json(401), json(200));
 
@@ -132,19 +168,19 @@ describe('createBearerMutator', () => {
   });
 
   it.each(['POST', 'PUT', 'DELETE'])('forces one refresh on 401 and replays a %s with the rotated token', async (method) => {
-    const refresh = vi.fn(async () => 'tok-2');
+    const refresh = session('tok-1', 'tok-2');
     stubPort({ refresh });
     responses.push(json(401), json(200, { id: 'x' }));
 
     const r = await run(mutator()<{ id: string }>('/api/items/x', { method, body: '{}' }));
-    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(forcedRefreshes(refresh)).toBe(1);
     expect(calls).toHaveLength(2);
     expect(calls[1].headers.get('Authorization')).toBe('Bearer tok-2');
     expect(r).toEqual({ id: 'x' });
   });
 
   it('does not replay a write when the forced refresh returns the same token', async () => {
-    const refresh = vi.fn(async () => 'tok-1');
+    const refresh = session('tok-1');
     stubPort({ refresh });
     responses.push(json(401));
 
@@ -154,17 +190,17 @@ describe('createBearerMutator', () => {
   });
 
   it('gives up when the forced refresh returns the same token', async () => {
-    const refresh = vi.fn(async () => 'tok-1');
+    const refresh = session('tok-1');
     stubPort({ refresh });
     responses.push(json(401));
 
     await expect(run(mutator()('/api/me'))).rejects.toMatchObject({ status: 401 });
-    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(forcedRefreshes(refresh)).toBe(1);
     expect(calls).toHaveLength(1);
   });
 
   it('gives up when the forced refresh cleared the session', async () => {
-    const refresh = vi.fn(async () => null);
+    const refresh = session('tok-1', null);
     stubPort({ refresh });
     responses.push(json(401));
 
@@ -173,24 +209,25 @@ describe('createBearerMutator', () => {
   });
 
   it('re-auths at most once: a second 401 after a successful refresh throws', async () => {
-    const refresh = vi.fn(async () => 'tok-2');
+    const refresh = session('tok-1', 'tok-2');
     stubPort({ refresh });
     responses.push(json(401), json(401));
 
     await expect(run(mutator()('/api/me'))).rejects.toMatchObject({ status: 401 });
-    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(forcedRefreshes(refresh)).toBe(1);
     expect(calls).toHaveLength(2);
   });
 
   it('does not re-auth when no token was sent, nor treat a 403 as an auth failure', async () => {
-    const refresh = vi.fn(async () => 'tok-2');
-    stubPort({ refresh, getToken: () => null });
+    const anonymous = session(null, 'tok-2');
+    stubPort({ refresh: anonymous });
     responses.push(json(401), json(403));
 
     await expect(run(mutator()('/api/items', { method: 'POST', body: '{}' }))).rejects.toMatchObject({ status: 401 });
-    stubPort({ refresh });
+    const signedIn = session('tok-1', 'tok-2');
+    stubPort({ refresh: signedIn });
     await expect(run(mutator()('/api/me'))).rejects.toMatchObject({ status: 403 });
-    expect(refresh).not.toHaveBeenCalled();
+    expect(forcedRefreshes(anonymous) + forcedRefreshes(signedIn)).toBe(0);
   });
 
   it('surfaces a problem document’s detail, title and traceId, else the status', async () => {

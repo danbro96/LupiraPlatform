@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+
+- **Breaking** `authPort`: `AuthPort` gains `onSignOut(cb)`.
+- `mutator`: `createBearerMutator` takes the bearer from `refresh(false)`, so a token near expiry is refreshed before the request.
+
 ## 0.2.1
 
 - `apiError`: `ApiError` gains `type` (the problem+json `type` URI), set by `ApiError.fromBody`, so a caller can branch on a typed failure.

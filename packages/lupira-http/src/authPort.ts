@@ -9,6 +9,7 @@ export interface AuthPort {
    *  failed so an already-rotated session isn't rotated twice. Returns the current token (or null = signed out). */
   refresh(force?: boolean, sentToken?: string): Promise<string | null>;
   onSignIn(cb: () => void): () => void;
+  onSignOut(cb: () => void): () => void;
 }
 
 let port: AuthPort | null = null;
