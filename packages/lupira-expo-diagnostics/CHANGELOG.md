@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.1
+- `detach` reports each stage + error to Sentry once per session; repeats still reach the debug log.
+
 ## 0.3.0
 - `log`: `detach(work, stage)` logs and reports a fire-and-forget promise's rejection to Sentry, tagged `area: <stage>`.
 - `logDebug` writes to the console only in `__DEV__`; Sentry's console integration doubled every breadcrumb.

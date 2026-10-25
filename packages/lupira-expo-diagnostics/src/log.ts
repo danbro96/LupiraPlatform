@@ -49,9 +49,15 @@ export function logDebug(stage: string, detail?: string): void {
   }
 }
 
+// Background work re-runs on every foreground and reconnect; a persistent fault reports once per session.
+const reported = new Set<string>();
+
 export function detach(work: Promise<unknown>, stage: string): void {
   work.catch((e: unknown) => {
     logDebug(stage, `failed: ${String(e)}`);
+    const key = `${stage}\n${String(e)}`;
+    if (reported.has(key)) return;
+    reported.add(key);
     try {
       Sentry.captureException(e, { tags: { area: stage } });
     } catch {

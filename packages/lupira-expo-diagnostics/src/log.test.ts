@@ -61,6 +61,20 @@ describe('detach', () => {
     expect(useDebugLog.getState().entries.at(-1)).toMatchObject({ stage: 'photos.upload', detail: 'failed: Error: boom' });
   });
 
+  it('captures a repeated failure once per stage', async () => {
+    const fail = (stage: string) => {
+      const work = Promise.reject(new Error('denied'));
+      detach(work, stage);
+      return work.catch(() => {});
+    };
+    await fail('photos.scan');
+    await fail('photos.scan');
+    await fail('maps.upload');
+    await Promise.resolve();
+    expect(Sentry.captureException).toHaveBeenCalledTimes(2);
+    expect(useDebugLog.getState().entries).toHaveLength(3);
+  });
+
   it('captures nothing when the work resolves', async () => {
     const work = Promise.resolve(1);
     detach(work, 'photos.upload');
