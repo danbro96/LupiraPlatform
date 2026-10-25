@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+- `log`: `detach(work, stage)` logs and reports a fire-and-forget promise's rejection to Sentry, tagged `area: <stage>`.
+- `logDebug` writes to the console only in `__DEV__`; Sentry's console integration doubled every breadcrumb.
+- `DebugLogScreen` Share and `useAutoUpdate` reload/check failures go through `detach` (`debug-log`, `updates`).
+
 ## 0.2.4
 - Accepts `@danbro96/lupira-expo-paper` ^0.8.0.
 

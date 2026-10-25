@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-expo-diagnostics",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "Debug log, developer screen, build info and OTA auto-update for Lupira Expo apps.",
   "license": "MIT",
   "type": "module",

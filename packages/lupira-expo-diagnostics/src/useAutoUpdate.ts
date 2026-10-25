@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import * as Updates from 'expo-updates';
+import { detach } from './log.ts';
 
 const CHECK_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -20,7 +21,7 @@ export function useAutoUpdate(): void {
   const lastCheck = useRef(0);
 
   useEffect(() => {
-    if (isUpdatePending) void Updates.reloadAsync();
+    if (isUpdatePending) detach(Updates.reloadAsync(), 'updates');
   }, [isUpdatePending]);
 
   useEffect(() => {
@@ -35,9 +36,9 @@ export function useAutoUpdate(): void {
       busy.current = false;
     };
 
-    void check();
+    detach(check(), 'updates');
     const sub = AppState.addEventListener('change', (s) => {
-      if (s === 'active') void check();
+      if (s === 'active') detach(check(), 'updates');
     });
     return () => sub.remove();
   }, []);

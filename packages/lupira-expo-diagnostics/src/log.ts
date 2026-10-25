@@ -36,7 +36,7 @@ export function logDebug(stage: string, detail?: string): void {
   const safeStage = redact(stage);
   const safeDetail = detail !== undefined ? redact(detail) : undefined;
   useDebugLog.getState().push({ t, stage: safeStage, detail: safeDetail });
-  console.log('[debug]', safeStage, safeDetail ?? '');
+  if (__DEV__) console.log('[debug]', safeStage, safeDetail ?? '');
   try {
     Sentry.addBreadcrumb({
       category: 'debug',
@@ -47,6 +47,17 @@ export function logDebug(stage: string, detail?: string): void {
   } catch {
     // Sentry not initialised yet.
   }
+}
+
+export function detach(work: Promise<unknown>, stage: string): void {
+  work.catch((e: unknown) => {
+    logDebug(stage, `failed: ${String(e)}`);
+    try {
+      Sentry.captureException(e, { tags: { area: stage } });
+    } catch {
+      // Sentry not initialised yet.
+    }
+  });
 }
 
 export function clearDebugLog(): void {

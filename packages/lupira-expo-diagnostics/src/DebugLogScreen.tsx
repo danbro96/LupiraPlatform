@@ -4,7 +4,7 @@ import type { Palette } from '@danbro96/lupira-tokens-core/color';
 import { spacing } from '@danbro96/lupira-tokens-core/spacing';
 import { Button } from '@danbro96/lupira-expo-paper/components/Button';
 import { useColors } from '@danbro96/lupira-expo-paper/theme/useColors';
-import { useDebugLog, clearDebugLog } from './log.ts';
+import { useDebugLog, clearDebugLog, detach } from './log.ts';
 
 /** On-device view of the shared debug buffer; not `__DEV__`-gated, so it works in production builds.
  *  Newest-first; Share exports the whole buffer. */
@@ -15,9 +15,9 @@ export function DebugLogScreen() {
   const rows = [...entries].reverse();
 
   function onShare() {
-    void Share.share({
+    detach(Share.share({
       message: entries.map(e => `${e.t} ${e.stage} ${e.detail ?? ''}`.trim()).join('\n'),
-    });
+    }), 'debug-log');
   }
 
   return (
