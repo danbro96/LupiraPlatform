@@ -19,4 +19,4 @@ builder.AddLupiraJwt(o =>
 });
 ```
 
-Defaults: bearer is the default scheme, `RequireHttpsMetadata = !IsDevelopment()`, `/mcp` challenge on, Authority + Audience required outside Development (never under `getdocument`), `X-Dev-User` scheme `Dev` in Development.
+Defaults: bearer is the default scheme, `RequireHttpsMetadata = !IsDevelopment()`, 30 s `ClockSkew`, `/mcp` challenge on, Authority + Audience required outside Development (never under `getdocument`), `X-Dev-User` scheme `Dev` in Development.

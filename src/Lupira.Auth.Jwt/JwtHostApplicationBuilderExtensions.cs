@@ -10,6 +10,8 @@ namespace Lupira.Auth.Jwt;
 
 public static class JwtHostApplicationBuilderExtensions
 {
+    private static readonly TimeSpan ClockSkew = TimeSpan.FromSeconds(30);
+
     public static AuthenticationBuilder AddLupiraJwt(this IHostApplicationBuilder builder, Action<LupiraJwtOptions>? configure = null) =>
         builder.AddLupiraJwt(configure, Environment.GetCommandLineArgs());
 
@@ -91,6 +93,8 @@ public static class JwtHostApplicationBuilderExtensions
                 RoleClaimType = DevClaims.RoleType,
             };
         }
+
+        bearer.TokenValidationParameters.ClockSkew = ClockSkew;
 
         if (options.McpChallenge)
             bearer.Events = new JwtBearerEvents { OnChallenge = McpChallenge.OnChallenge };

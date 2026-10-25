@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <Description>OIDC JWT bearer authentication for Lupira APIs: Auth:Oidc binding and startup guard, the /mcp RFC 9728 challenge, the Development DevOrJwt default scheme, and the Api, internal-scope and gateway-azp policies.</Description>
   </PropertyGroup>
 

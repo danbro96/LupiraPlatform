@@ -5,6 +5,9 @@ namespace Lupira.Auth.Jwt.UnitTests;
 
 public sealed class FlavourEquivalenceTests
 {
+    private const string FrameworkSkew = " skew 00:05:00 ";
+    private const string PackageSkew = " skew 00:00:30 ";
+
     public static TheoryData<string, string, bool, bool> Cases()
     {
         var data = new TheoryData<string, string, bool, bool>();
@@ -29,10 +32,21 @@ public sealed class FlavourEquivalenceTests
     {
         var (today, package) = Setups(flavour);
 
-        var expected = await AuthSnapshot.TakeAsync(today, environment, configured, openApi);
+        var expected = (await AuthSnapshot.TakeAsync(today, environment, configured, openApi)).Replace(FrameworkSkew, PackageSkew, StringComparison.Ordinal);
         var actual = await AuthSnapshot.TakeAsync(package, environment, configured, openApi);
 
         Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData(JwtValidationProfile.Default)]
+    [InlineData(JwtValidationProfile.RawClaims)]
+    [InlineData(JwtValidationProfile.Strict)]
+    public async Task Every_profile_narrows_the_clock_skew(JwtValidationProfile profile)
+    {
+        var snapshot = await AuthSnapshot.TakeAsync((b, _) => b.AddLupiraJwt(o => o.Validation = profile, []), "Production", configured: true);
+
+        Assert.Contains(PackageSkew, snapshot, StringComparison.Ordinal);
     }
 
     [Fact]
