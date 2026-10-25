@@ -7,6 +7,8 @@ export function invalidateOnChange(
   derivedRoots: Record<string, string[]> = {},
 ): (event: { aggregate: string }) => void {
   return ({ aggregate }) => {
-    for (const root of [aggregate, ...(derivedRoots[aggregate] ?? [])]) void queryClient.invalidateQueries({ queryKey: [root] });
+    for (const root of [aggregate, ...(derivedRoots[aggregate] ?? [])]) {
+      queryClient.invalidateQueries({ queryKey: [root] });
+    }
   };
 }

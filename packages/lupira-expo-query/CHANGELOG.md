@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.4
+
+- `invalidateOnChange` passes the type-aware promise lint; no behaviour change.
+
 ## 0.1.3
 
 - `@tanstack/query-async-storage-persister`, `@tanstack/react-query-persist-client` and `expo-sqlite` are no longer peers: GitHub Packages drops `peerDependenciesMeta`, so npm installed them anyway. An app using `queryClient` depends on them itself.
