@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-sync-core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Pure Lupira offline-sync rules: last-writer-wins, replay-error classification, queue backoff.",
   "license": "MIT",
   "type": "module",

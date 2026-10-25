@@ -5,6 +5,8 @@ export type ReplayDecision = {
   /** Stop the drain loop (park lets the queue continue past the corpse). */
   stop: boolean;
   reason: string;
+  detail?: string;
+  traceId?: string;
 };
 
 /** Classifies an HTTP status; 0 = transport failure (no response). */
@@ -19,8 +21,19 @@ export function classifyReplayStatus(status: number): ReplayDecision {
 
 /** Classifies a thrown replay failure: an `Error` with a numeric `status` (the apps' `ApiError`) by status. */
 export function classifyReplayError(e: unknown): ReplayDecision {
-  const status = e instanceof Error ? (e as { status?: unknown }).status : undefined;
-  if (typeof status === 'number') return classifyReplayStatus(status);
+  if (e instanceof Error) {
+    const { status, traceId, message } = e as Error & { status?: unknown; traceId?: unknown };
+    if (typeof status === 'number') {
+      const decision = classifyReplayStatus(status);
+      // A 401 needs no detail, and `HTTP <status>` is the mutator's bodiless fallback that restates the reason.
+      const detail = decision.outcome !== 'pause' && message && message !== `HTTP ${status}` ? message : undefined;
+      return { ...decision, ...(detail && { detail }), ...(typeof traceId === 'string' && { traceId }) };
+    }
+  }
   // Non-HTTP throw = a client bug; it would fail identically forever — park it for review.
   return { outcome: 'park', stop: false, reason: `client error: ${String(e)}` };
+}
+
+export function describeFailure(d: ReplayDecision): string {
+  return d.detail ? `${d.reason}: ${d.detail}` : d.reason;
 }

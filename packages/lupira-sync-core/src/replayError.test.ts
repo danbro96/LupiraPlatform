@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { classifyReplayError, classifyReplayStatus } from './replayError.ts';
+import { classifyReplayError, classifyReplayStatus, describeFailure } from './replayError.ts';
 
 class HttpError extends Error {
   readonly status: number;
+  readonly traceId?: string;
 
-  constructor(status: number) {
-    super(`HTTP ${status}`);
+  constructor(status: number, message = `HTTP ${status}`, traceId?: string) {
+    super(message);
     this.status = status;
+    this.traceId = traceId;
   }
 }
 
@@ -30,6 +32,28 @@ describe('classifyReplayError', () => {
     expect(classifyReplayError('weird string throw')).toMatchObject({ outcome: 'park', stop: false });
   });
 
+  it('carries the server detail and trace id of an HTTP failure', () => {
+    expect(classifyReplayError(new HttpError(400, 'Title is required', '00-abc-01'))).toEqual({
+      outcome: 'park',
+      stop: false,
+      reason: 'rejected (400)',
+      detail: 'Title is required',
+      traceId: '00-abc-01',
+    });
+    expect(classifyReplayError(new HttpError(409, ''))).not.toHaveProperty('detail');
+    expect(classifyReplayError(new HttpError(409))).not.toHaveProperty('detail');
+    expect(classifyReplayError(new HttpError(401, 'Unauthorized', '00-abc-01'))).toEqual({
+      outcome: 'pause',
+      stop: true,
+      reason: 'signed out',
+      traceId: '00-abc-01',
+    });
+  });
+
+  it('adds no detail to a client error', () => {
+    expect(classifyReplayError(new TypeError('boom'))).not.toHaveProperty('detail');
+  });
+
   it('only reads status from an Error', () => {
     expect(classifyReplayError({ status: 503 })).toMatchObject({ outcome: 'park', stop: false });
   });
@@ -40,5 +64,15 @@ describe('classifyReplayStatus', () => {
     expect(classifyReplayStatus(401).reason).toBe('signed out');
     expect(classifyReplayStatus(503).reason).toBe('transient (503)');
     expect(classifyReplayStatus(409).reason).toBe('rejected (409)');
+  });
+});
+
+describe('describeFailure', () => {
+  it('appends the detail to the reason', () => {
+    expect(describeFailure({ outcome: 'park', stop: false, reason: 'rejected (400)', detail: 'Title is required' })).toBe('rejected (400): Title is required');
+  });
+
+  it('falls back to the reason alone', () => {
+    expect(describeFailure(classifyReplayStatus(401))).toBe('signed out');
   });
 });
