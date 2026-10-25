@@ -6,16 +6,19 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace Lupira.Hosting.Problems.UnitTests;
 
 public sealed class ProblemExceptionHandlerTests
 {
-    private static async Task<WebApplication> StartAsync(Action<ProblemExceptionOptions>? configure = null)
+    private static async Task<WebApplication> StartAsync(Action<ProblemExceptionOptions>? configure = null, ILoggerProvider? logs = null)
     {
         var builder = WebApplication.CreateSlimBuilder();
         builder.WebHost.UseTestServer();
+        if (logs is not null)
+            builder.Logging.AddProvider(logs);
         builder.Services.AddLupiraProblems(configure);
         builder.Services.Configure<RouteHandlerOptions>(o => o.ThrowOnBadRequest = true);
         var app = builder.Build();
@@ -46,6 +49,22 @@ public sealed class ProblemExceptionHandlerTests
         Assert.Equal("Bad request", body.GetProperty("title").GetString());
         Assert.Contains("idempotencyKey", body.GetProperty("detail").GetString());
         Assert.True(body.TryGetProperty("traceId", out _));
+    }
+
+    [Fact]
+    public async Task A_binding_failure_is_logged_as_a_warning_with_path_and_trace_id()
+    {
+        var logs = new CapturingLoggerProvider();
+        await using var app = await StartAsync(logs: logs);
+
+        var (_, body) = await SendAsync(app, BadIdempotencyKey());
+
+        var traceId = body.GetProperty("traceId").GetString()!;
+        Assert.Contains(
+            logs.Entries,
+            e => e.Level == LogLevel.Warning
+                && e.Message.Contains("POST /items", StringComparison.Ordinal)
+                && e.Message.Contains(traceId, StringComparison.Ordinal));
     }
 
     [Fact]

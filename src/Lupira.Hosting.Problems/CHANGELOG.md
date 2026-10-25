@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0
+- Requires `Lupira.Results` 1.2.0.
+- `Problems.ServiceUnavailable`: 503 ProblemDetails helper.
+- `OpResultMap`: `OpStatus.Unavailable` → 503 in every ProblemDetails shape (`OkProblem`, `OkNotFoundProblem` (both overloads), `AcceptedProblem`, `NoContentNotFoundProblem`).
+- Exception handler logs binding failures (`BadHttpRequestException`) at Warning with method, path and trace id.
+
 ## 0.2.0
 - Requires `Lupira.Results` 1.1.0.
 - `Problems.BadRequest` / `Forbidden` / `Conflict` / `BadGateway`: optional `type` (defaults to `https://httpstatuses.com/<status>`).

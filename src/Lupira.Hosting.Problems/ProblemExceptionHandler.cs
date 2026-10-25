@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,12 @@ internal sealed class ProblemExceptionHandler(ILogger<ProblemExceptionHandler> l
         // status — the caller's mistake, not a fault, and not a 500.
         if (exception is BadHttpRequestException bad)
         {
+            log.LogWarning(
+                "Bad request on {Method} {Path}: {Reason} (trace {TraceId})",
+                context.Request.Method,
+                context.Request.Path,
+                bad.Message,
+                Activity.Current?.Id ?? context.TraceIdentifier);
             await TypedResults.Problem(
                 title: "Bad request",
                 detail: options.Value.BadRequestDetail?.Invoke(context, bad) ?? bad.Message,

@@ -37,4 +37,11 @@ public static class Problems
             detail: detail,
             statusCode: StatusCodes.Status502BadGateway,
             type: type ?? "https://httpstatuses.com/502");
+
+    public static ProblemHttpResult ServiceUnavailable(string detail, string? title = null, string? type = null) =>
+        TypedResults.Problem(
+            title: title ?? "Service unavailable",
+            detail: detail,
+            statusCode: StatusCodes.Status503ServiceUnavailable,
+            type: type ?? "https://httpstatuses.com/503");
 }

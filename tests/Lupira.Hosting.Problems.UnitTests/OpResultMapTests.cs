@@ -12,9 +12,10 @@ public sealed class OpResultMapTests
         { OpStatus.Invalid, StatusCodes.Status400BadRequest },
         { OpStatus.Forbidden, StatusCodes.Status403Forbidden },
         { OpStatus.Conflict, StatusCodes.Status409Conflict },
+        { OpStatus.Unavailable, StatusCodes.Status503ServiceUnavailable },
     };
 
-    public static TheoryData<OpStatus> FailureStatuses => new() { OpStatus.Invalid, OpStatus.Forbidden, OpStatus.Conflict };
+    public static TheoryData<OpStatus> FailureStatuses => new() { OpStatus.Invalid, OpStatus.Forbidden, OpStatus.Conflict, OpStatus.Unavailable };
 
     [Theory]
     [MemberData(nameof(ProblemStatuses))]
@@ -50,6 +51,7 @@ public sealed class OpResultMapTests
         {
             OpStatus.Invalid => (OpResult<int>.Invalid("why", type), OpResult.Invalid("why", type)),
             OpStatus.Forbidden => (OpResult<int>.Forbidden("why", type), OpResult.Forbidden("why", type)),
+            OpStatus.Unavailable => (OpResult<int>.Unavailable("why", type), OpResult.Unavailable("why", type)),
             _ => (OpResult<int>.Conflict("why", type), OpResult.Conflict("why", type)),
         };
 
@@ -91,5 +93,6 @@ public sealed class OpResultMapTests
         Assert.Throws<InvalidOperationException>(() => OpResultMap.OkProblem(OpResult<int>.NotFound()));
         Assert.Throws<InvalidOperationException>(() => OpResultMap.AcceptedProblem(OpResult<int>.NotFound()));
         Assert.Throws<InvalidOperationException>(() => OpResultMap.NoContentNotFound(OpResult.Conflict("x")));
+        Assert.Throws<InvalidOperationException>(() => OpResultMap.OkNotFound(OpResult<int>.Unavailable("x")));
     }
 }

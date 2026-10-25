@@ -8,7 +8,8 @@ namespace Lupira.Hosting.Problems;
 /// Maps the transport-neutral <see cref="OpResult{T}"/>/<see cref="OpResult"/> to the typed ASP.NET
 /// <c>Results&lt;...&gt;</c> unions the REST handlers declare (which keep the OpenAPI contract precise).
 /// <see cref="OpStatus.Forbidden"/> → 403, <see cref="OpStatus.Invalid"/> → 400, <see cref="OpStatus.Conflict"/>
-/// → 409 ProblemDetails. A status a given shape can't represent is a programming error and throws.
+/// → 409, <see cref="OpStatus.Unavailable"/> → 503 ProblemDetails. A status a given shape can't represent is a
+/// programming error and throws.
 /// </summary>
 public static class OpResultMap
 {
@@ -31,6 +32,7 @@ public static class OpResultMap
         OpStatus.Invalid => Problems.BadRequest(r.Error!, type: r.Type),
         OpStatus.Forbidden => Problems.Forbidden(r.Error!, type: r.Type),
         OpStatus.Conflict => Problems.Conflict(r.Error!, type: r.Type),
+        OpStatus.Unavailable => Problems.ServiceUnavailable(r.Error!, type: r.Type),
         _ => throw Unexpected(r.Status),
     };
 
@@ -41,6 +43,7 @@ public static class OpResultMap
         OpStatus.Forbidden => Problems.Forbidden(r.Error!, type: r.Type),
         OpStatus.Invalid => Problems.BadRequest(r.Error!, type: r.Type),
         OpStatus.Conflict => Problems.Conflict(r.Error!, type: r.Type),
+        OpStatus.Unavailable => Problems.ServiceUnavailable(r.Error!, type: r.Type),
         _ => throw Unexpected(r.Status),
     };
 
@@ -53,6 +56,7 @@ public static class OpResultMap
             OpStatus.Forbidden => Problems.Forbidden(r.Error!, type: r.Type),
             OpStatus.Invalid => Problems.BadRequest(r.Error!, type: r.Type),
             OpStatus.Conflict => Problems.Conflict(r.Error!, type: r.Type),
+            OpStatus.Unavailable => Problems.ServiceUnavailable(r.Error!, type: r.Type),
             _ => throw Unexpected(r.Status),
         };
 
@@ -63,6 +67,7 @@ public static class OpResultMap
         OpStatus.Invalid => Problems.BadRequest(r.Error!, type: r.Type),
         OpStatus.Forbidden => Problems.Forbidden(r.Error!, type: r.Type),
         OpStatus.Conflict => Problems.Conflict(r.Error!, type: r.Type),
+        OpStatus.Unavailable => Problems.ServiceUnavailable(r.Error!, type: r.Type),
         _ => throw Unexpected(r.Status),
     };
 
@@ -80,6 +85,7 @@ public static class OpResultMap
         OpStatus.Forbidden => Problems.Forbidden(r.Error!, type: r.Type),
         OpStatus.Invalid => Problems.BadRequest(r.Error!, type: r.Type),
         OpStatus.Conflict => Problems.Conflict(r.Error!, type: r.Type),
+        OpStatus.Unavailable => Problems.ServiceUnavailable(r.Error!, type: r.Type),
         _ => throw Unexpected(r.Status),
     };
 
