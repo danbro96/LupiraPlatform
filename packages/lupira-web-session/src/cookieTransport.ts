@@ -1,4 +1,4 @@
-import { ApiError, NETWORK_ERROR, problemMessage } from '@danbro96/lupira-http/apiError';
+import { ApiError, NETWORK_ERROR } from '@danbro96/lupira-http/apiError';
 import { setApiTransport, type ApiTransport } from '@danbro96/lupira-http/transport';
 import { login } from './session.ts';
 
@@ -21,7 +21,7 @@ export function cookieTransport({ baseUrl = '', redirectOn401 = () => true }: Co
     if (!res.ok) {
       const text = await res.text().catch(() => '');
       if (res.status === 401 && redirectOn401()) login();
-      throw new ApiError(res.status, problemMessage(text, res.status === 401 ? 'Not authenticated' : res.statusText || `HTTP ${res.status}`));
+      throw ApiError.fromBody(res.status, text, res.status === 401 ? 'Not authenticated' : res.statusText || `HTTP ${res.status}`);
     }
     if (res.status === 204) return undefined as T;
     // A 200 of HTML means the SPA fallback answered a dead route; parsing it fails obscurely.

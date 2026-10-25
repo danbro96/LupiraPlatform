@@ -43,6 +43,11 @@ describe('cookieTransport', () => {
     await expect(cookieTransport()('/x')).rejects.toMatchObject({ status: 409, message: 'Already a member' });
   });
 
+  it('carries the problem type, title and trace id', async () => {
+    respond(403, '{"type":"https://lupira.com/problems/forbidden","title":"Forbidden","traceId":"00-abc-01"}', 'application/problem+json');
+    await expect(cookieTransport()('/x')).rejects.toMatchObject({ type: 'https://lupira.com/problems/forbidden', title: 'Forbidden', traceId: '00-abc-01' });
+  });
+
   it('refuses the SPA shell in place of data', async () => {
     respond(200, '<!doctype html>', 'text/html');
     await expect(cookieTransport()('/gone')).rejects.toThrow('received the app shell');

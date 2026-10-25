@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0
+
+- `cookieTransport`: an error response's `ApiError` carries the problem+json `type`, `title` and `traceId`.
+- **Breaking** peer `@danbro96/lupira-http` `^0.2.1 || ^0.3.0`.
+
 ## 0.1.1
 
 - Peer range admits `@danbro96/lupira-http` 0.2.0.
