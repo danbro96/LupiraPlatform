@@ -12,9 +12,11 @@ public sealed class OpResultMcpExtensionsTests
         { OpResult<int>.Forbidden("not yours"), "not yours" },
         { OpResult<int>.Invalid("bad name"), "bad name" },
         { OpResult<int>.Conflict("taken"), "taken" },
+        { OpResult<int>.Unavailable("geocoder unreachable, retry shortly"), "geocoder unreachable, retry shortly" },
         { new OpResult<int>(OpStatus.Forbidden, 0, null), "Forbidden." },
         { new OpResult<int>(OpStatus.Invalid, 0, null), "Invalid request." },
         { new OpResult<int>(OpStatus.Conflict, 0, null), "Conflict." },
+        { new OpResult<int>(OpStatus.Unavailable, 0, null), "Temporarily unavailable." },
         { new OpResult<int>((OpStatus) 99, 0, "x"), "Unexpected result." },
     };
 

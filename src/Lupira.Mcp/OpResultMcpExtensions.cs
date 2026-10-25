@@ -13,6 +13,7 @@ public static class OpResultMcpExtensions
         OpStatus.Forbidden => throw new McpException(r.Error ?? "Forbidden."),
         OpStatus.Invalid => throw new McpException(r.Error ?? "Invalid request."),
         OpStatus.Conflict => throw new McpException(r.Error ?? "Conflict."),
+        OpStatus.Unavailable => throw new McpException(r.Error ?? "Temporarily unavailable."),
         _ => throw new McpException("Unexpected result."),
     };
 
@@ -25,6 +26,7 @@ public static class OpResultMcpExtensions
             OpStatus.Forbidden => new McpException(r.Error ?? "Forbidden."),
             OpStatus.Invalid => new McpException(r.Error ?? "Invalid request."),
             OpStatus.Conflict => new McpException(r.Error ?? "Conflict."),
+            OpStatus.Unavailable => new McpException(r.Error ?? "Temporarily unavailable."),
             _ => new McpException("Unexpected result."),
         };
     }
