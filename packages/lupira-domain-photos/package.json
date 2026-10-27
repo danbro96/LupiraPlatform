@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-domain-photos",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Pure Lupira photo rules: capture windows and the photo-event link.",
   "license": "MIT",
   "type": "module",

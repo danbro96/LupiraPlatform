@@ -26,8 +26,13 @@ export interface PhotoWindow {
   toIso: string;
 }
 
-/** Null when the item has no start — there is nothing to search around. */
-export function eventPhotoWindow(item: PhotoWindowSource): PhotoWindow | null {
+/** Null when the item has no start, or hasn't begun by `now` — no photo of it can exist yet. */
+export function eventPhotoWindow(item: PhotoWindowSource, now: Date = new Date()): PhotoWindow | null {
+  const window = spanOf(item);
+  return window && Date.parse(window.fromIso) <= now.getTime() ? window : null;
+}
+
+function spanOf(item: PhotoWindowSource): PhotoWindow | null {
   if (item.isAllDay) {
     if (!item.startDate) return null;
     const from = startOfDay(parseYmd(item.startDate));

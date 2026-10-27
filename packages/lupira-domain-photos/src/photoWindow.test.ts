@@ -2,6 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { captureWindow, eventPhotoWindow } from './photoWindow.ts';
 
 describe('eventPhotoWindow', () => {
+  it('has no window for an event that has not begun', () => {
+    const now = new Date('2026-08-20T09:00:00Z');
+    expect(eventPhotoWindow({ startsAt: '2026-08-20T10:00:00Z' }, now)).toBeNull();
+    expect(eventPhotoWindow({ isAllDay: true, startDate: '2026-08-22' }, now)).toBeNull();
+    expect(eventPhotoWindow({ startsAt: '2026-08-20T09:10:00Z' }, now)).not.toBeNull();
+  });
+
   it('pads a timed event on both ends', () => {
     const w = eventPhotoWindow({ startsAt: '2026-08-20T10:00:00Z', endsAt: '2026-08-20T12:00:00Z' })!;
     expect(w.fromIso).toBe('2026-08-20T09:45:00.000Z');
