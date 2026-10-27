@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+- `placeRank`: `PlaceRankContext` takes optional `historyWeight(candidate)`, scaling a place's hotspot and overall-usage terms in `affinity`; same-kind usage is unaffected. Omitted, scores are unchanged.
+
 ## 0.2.1
 
 - `pickPlaces` returns only `places`; the unused `residentsNear` lookup is gone.

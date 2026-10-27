@@ -101,6 +101,18 @@ describe('usage, category and companions', () => {
     expect(ids(rankPlaces(list, ctx({ categoryAffinity: appointment })))).toEqual(['clinic', 'home']);
   });
 
+  it('scales hotspot and overall usage by the history weight, not same-kind usage', () => {
+    const c: PlaceCandidate = {
+      placeId: 'p', label: 'A', hotspot: { activeDays: 18, lastDay: '2026-09-01' },
+      usage: { count: 10, lastDay: '2026-09-01', categoryCount: 4, categoryLastDay: '2026-09-01' },
+    };
+    const sameKind = affinity({ ...c, hotspot: undefined, usage: { ...c.usage!, count: 0 } }, ctx());
+    const full = affinity(c, ctx());
+    expect(affinity(c, ctx({ historyWeight: () => 1 }))).toBe(full);
+    expect(affinity(c, ctx({ historyWeight: () => 0 }))).toBeCloseTo(sameKind);
+    expect(affinity(c, ctx({ historyWeight: () => 0.5 }))).toBeCloseTo((full + sameKind) / 2);
+  });
+
   it('favours where you have been with the invited people', () => {
     const list: PlaceCandidate[] = [
       { placeId: 'pub', label: 'A', companions: [{ contactId: 'bo', count: 12 }] },

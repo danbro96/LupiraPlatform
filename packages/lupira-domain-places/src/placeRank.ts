@@ -38,6 +38,8 @@ export interface PlaceRankContext {
   categoryAffinity?: (placeCategory: string | undefined, isHome: boolean) => number;
   /** 0..1 — how far past use is scored by recency alone rather than frequency. */
   recencyBias?: number;
+  /** Scales a place's all-kinds history (hotspot, overall usage); default 1. */
+  historyWeight?: (c: PlaceCandidate) => number;
 }
 
 const DAY_MS = 86_400_000;
@@ -101,9 +103,10 @@ export function affinity(c: PlaceCandidate, ctx: PlaceRankContext): number {
     const scoreOf = (id: string) => (top > 0 ? (ctx.contactScores?.get(id) ?? 0) / top : 0);
     a += 0.5 + Math.max(...active.map((r) => scoreOf(r.contactId)));
   }
-  if (c.hotspot) a += decayedUse(c.hotspot.activeDays, c.hotspot.lastDay, ctx);
+  const history = ctx.historyWeight?.(c) ?? 1;
+  if (c.hotspot) a += history * decayedUse(c.hotspot.activeDays, c.hotspot.lastDay, ctx);
   if (c.usage) {
-    a += decayedUse(c.usage.count, c.usage.lastDay, ctx);
+    a += history * decayedUse(c.usage.count, c.usage.lastDay, ctx);
     if (c.usage.categoryCount) {
       const weight = ctx.categoryAffinity?.(c.placeCategory, c.isHome ?? false) ?? 1;
       a += weight * decayedUse(c.usage.categoryCount, c.usage.categoryLastDay ?? c.usage.lastDay, ctx);
