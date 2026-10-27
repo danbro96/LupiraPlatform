@@ -15,5 +15,6 @@ public enum CalendarKind
     UserCheckIn,
     DevOps,
     FoodPlan,
+    Holidays,
     Generic,
 }

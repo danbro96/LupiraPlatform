@@ -1,6 +1,6 @@
 {
   "name": "@danbro96/lupira-tokens-calendar",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Platform-neutral Lupira calendar tokens: calendar-kind, availability, family-accent and avatar colours.",
   "license": "MIT",
   "type": "module",

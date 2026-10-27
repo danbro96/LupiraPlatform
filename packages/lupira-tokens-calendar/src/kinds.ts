@@ -10,6 +10,7 @@ export type CalendarKindName =
   | 'UserCheckIn'
   | 'DevOps'
   | 'FoodPlan'
+  | 'Holidays'
   | 'Generic';
 
 export type AvailabilityStatusName = 'Office' | 'Home' | 'Vacation' | 'Sick' | 'Leave';
@@ -25,6 +26,7 @@ export const KIND_COLORS: Record<CalendarKindName, string> = {
   UserCheckIn: '#ea580c',
   DevOps: '#475569',
   FoodPlan: '#65a30d',
+  Holidays: '#b91c1c',
   Generic: '#64748b',
 };
 
