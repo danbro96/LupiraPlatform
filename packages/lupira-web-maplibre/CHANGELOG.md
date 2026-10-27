@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2
+
+- Depends on `lupira-domain-places` ^0.3.0.
+
 ## 0.3.1
 
 - `MiniMap` and `MapPinDialog` route a failed map setup to `reportError`.
