@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const store = new Map<string, string>();
+const refusedDeletes = new Set<string>();
 vi.mock('expo-secure-store', () => ({
   getItemAsync: vi.fn((k: string) => Promise.resolve(store.get(k) ?? null)),
   setItemAsync: vi.fn((k: string, v: string) => {
@@ -8,6 +9,7 @@ vi.mock('expo-secure-store', () => ({
     return Promise.resolve();
   }),
   deleteItemAsync: vi.fn((k: string) => {
+    if (refusedDeletes.has(k)) return Promise.reject(new Error('keychain refused delete'));
     store.delete(k);
     return Promise.resolve();
   }),
@@ -39,6 +41,7 @@ const seed = (expiresInMs: number) => {
 
 beforeEach(() => {
   store.clear();
+  refusedDeletes.clear();
   refreshTokens.mockReset();
   signOut.mockClear();
   onDefinitiveFailure.mockClear();
@@ -168,5 +171,14 @@ describe('secureSessionStore', () => {
 
     await s.clear();
     expect(await s.load()).toEqual({ token: null, refreshToken: null, expiresAt: 0 });
+  });
+
+  it('clears every other key and rejects when one delete is refused', async () => {
+    const s = secureSessionStore('lupira.calendar');
+    await s.save({ token: 'tok-9', refreshToken: 'rt-9', expiresAt: 123 });
+    refusedDeletes.add('lupira.calendar.refreshToken');
+
+    await expect(s.clear()).rejects.toThrow('keychain refused delete');
+    expect([...store.keys()]).toEqual(['lupira.calendar.refreshToken']);
   });
 });

@@ -200,9 +200,10 @@ export function createAuthStore<X extends object = object>(options: AuthStoreOpt
         setAuth({ token: null, refreshToken: null, expiresAt: 0, user: null });
         try {
           await Promise.all([sessionStore.clear(), SecureStore.deleteItemAsync(keys.userSub), SecureStore.deleteItemAsync(keys.userName)]);
-        } finally {
-          notifySignOut();
+        } catch (e) {
+          log('auth:persist-error', message(e));
         }
+        notifySignOut();
       },
 
       refreshIfNeeded(opts) {

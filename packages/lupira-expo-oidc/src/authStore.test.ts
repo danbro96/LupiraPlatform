@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const store = new Map<string, string>();
 const failWrites = { on: false };
+const refusedDeletes = new Set<string>();
 vi.mock('expo-secure-store', () => ({
   getItemAsync: vi.fn((k: string) => Promise.resolve(store.get(k) ?? null)),
   setItemAsync: vi.fn((k: string, v: string) => {
@@ -10,6 +11,7 @@ vi.mock('expo-secure-store', () => ({
     return Promise.resolve();
   }),
   deleteItemAsync: vi.fn((k: string) => {
+    if (refusedDeletes.has(k)) return Promise.reject(new Error('keychain refused delete'));
     store.delete(k);
     return Promise.resolve();
   }),
@@ -66,6 +68,7 @@ function deferred<T>() {
 beforeEach(() => {
   store.clear();
   failWrites.on = false;
+  refusedDeletes.clear();
   refreshTokens.mockReset();
   appState.current = 'active';
   appState.listeners.clear();
@@ -248,6 +251,31 @@ describe('session persistence', () => {
     expect([...store.keys()]).toEqual(['lupira.test.lastSub']);
   });
 
+  it('signs out in memory and notifies when a stored delete is refused', async () => {
+    const log = vi.fn();
+    const onSignOut = vi.fn();
+    const useAuth = make({ log });
+    useAuth.getState().onSignOut(onSignOut);
+    await useAuth.getState().setSession({ accessToken: tokenFor('user@test'), refreshToken: 'rt-1' });
+    refusedDeletes.add('lupira.test.refreshToken');
+
+    await expect(useAuth.getState().clearSession()).resolves.toBeUndefined();
+    expect(useAuth.getState()).toMatchObject({ token: null, refreshToken: null, user: null });
+    expect(onSignOut).toHaveBeenCalledOnce();
+    expect(log).toHaveBeenCalledWith('auth:persist-error', 'keychain refused delete');
+    expect([...store.keys()].sort()).toEqual(['lupira.test.lastSub', 'lupira.test.refreshToken']);
+  });
+
+  it('signs out on a definitive refresh failure when a stored delete is refused', async () => {
+    const useAuth = make();
+    seed(useAuth, 10_000);
+    refusedDeletes.add('lupira.test.token');
+    refreshTokens.mockRejectedValue(new RefreshError(true, 'invalid_grant'));
+
+    expect(await useAuth.getState().refreshIfNeeded({ force: true })).toBeNull();
+    expect(useAuth.getState().token).toBeNull();
+  });
+
   it('runs beforeSignOut while the token is still live', async () => {
     const seen: (string | null)[] = [];
     const useAuth = make({ beforeSignOut: () => void seen.push(useAuth.getState().token) });
@@ -367,6 +395,16 @@ describe('setBackend', () => {
     await relaunched.getState().load();
     expect(relaunched.getState()).toMatchObject({ apiUrl: 'http://10.0.2.2:5000', authMode: 'dev' });
     expect(relaunched.getState().isAuthenticated()).toBe(true);
+  });
+
+  it('switches backend when a stored delete is refused', async () => {
+    const useAuth = make();
+    seed(useAuth, 3_600_000);
+    refusedDeletes.add('lupira.test.userSub');
+
+    await useAuth.getState().setBackend({ api: 'https://other.test' }, 'oidc');
+    expect(useAuth.getState()).toMatchObject({ apiUrl: 'https://other.test', token: null });
+    expect(store.get('lupira.test.apiUrl')).toBe('https://other.test');
   });
 
   it('honours storage key overrides', async () => {

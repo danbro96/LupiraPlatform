@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.3
+
+- `clearSession` resolves when a SecureStore delete is refused (expo-secure-store 58 rejects it): the session is cleared in memory, sign-out listeners fire, and the failure is logged as `auth:persist-error`. A backend switch or refresh-driven sign-out no longer aborts on it.
+
 ## 0.4.2
 
 - A refresh that returns after a sign-out or account switch is dropped instead of restoring the old session.
