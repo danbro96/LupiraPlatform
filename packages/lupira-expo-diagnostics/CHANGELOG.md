@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.2
+- Accepts `@danbro96/lupira-expo-paper` ^0.9.0.
+
 ## 0.3.1
 - `detach` reports each stage + error to Sentry once per session; repeats still reach the debug log.
 

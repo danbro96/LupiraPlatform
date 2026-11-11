@@ -8,6 +8,7 @@ export interface KitIcons {
   check: MaterialGlyph;
   chevronRight: MaterialGlyph;
   cloudOff: MaterialGlyph;
+  entryCode: MaterialGlyph;
   more: MaterialGlyph;
   signOut: MaterialGlyph;
   sync: MaterialGlyph;
@@ -20,6 +21,7 @@ export const ICONS: KitIcons = {
   check: 'check',
   chevronRight: 'chevron-right',
   cloudOff: 'cloud-off',
+  entryCode: 'password',
   more: 'more-vert',
   signOut: 'logout',
   sync: 'sync',

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.0
+- `EntryCodes`: a place's door codes over `EntryCode[]`, masked until tapped, hold copies; with `editable`, tapping a shown code edits it in a `Sheet` that also adds codes, and Remove asks through `useConfirm`. `onSave` gets an `EntryCodeDraft` whose `id` is null for a new code.
+- `ICONS`/`configureIcons`: `entryCode` added.
+
 ## 0.8.1
 - `SignOutButton` and `SyncStatusView`'s Discard show an error toast when the confirmed action throws.
 
