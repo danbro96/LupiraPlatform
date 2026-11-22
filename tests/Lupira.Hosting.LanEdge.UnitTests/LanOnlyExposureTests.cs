@@ -22,17 +22,18 @@ public sealed class LanOnlyExposureTests
         return app;
     }
 
-    private static async Task<HttpStatusCode> GetAsync(WebApplication app, string path, string? cloudflareHeader)
+    private static async Task<HttpStatusCode> GetAsync(WebApplication app, string path, string? edgeHeader)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, path);
-        if (cloudflareHeader is not null) request.Headers.Add(cloudflareHeader, "x");
+        if (edgeHeader is not null) request.Headers.Add(edgeHeader, "x");
         return (await app.GetTestClient().SendAsync(request)).StatusCode;
     }
 
     [Theory]
     [InlineData("/mcp", "CF-Ray")]
     [InlineData("/internal/counts", "CF-Connecting-IP")]
-    public async Task A_tunnelled_hit_on_a_lan_only_prefix_is_404(string path, string header)
+    [InlineData("/mcp", "X-Forwarded-For")]
+    public async Task An_edge_routed_hit_on_a_lan_only_prefix_is_404(string path, string header)
     {
         await using var app = await StartAsync();
 
@@ -44,6 +45,7 @@ public sealed class LanOnlyExposureTests
     [InlineData("/internal/counts", null)]
     [InlineData("/mcpx", "CF-Ray")]
     [InlineData("/items", "CF-Ray")]
+    [InlineData("/items", "X-Forwarded-For")]
     public async Task Direct_hits_and_other_paths_pass(string path, string? header)
     {
         await using var app = await StartAsync();
